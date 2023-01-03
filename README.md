@@ -2,6 +2,8 @@
 
 This package is intended to provide functionality to aggregate pointclouds provenient from different sources. For instance, a deprojected depth camera and LiDAR sensors. The hardware tested during the development of this package was the RealSense D435i depth camera and 3 Livox Horizon LiDAR sensors merged with a Livox Hub.
 
+To replicate this exact scenario, it is recommended to use the official RealSense ROS wrapper as well as the Livox ROS wrapper, they provide the data already published through topics, and deal with little details we don't have to worry about.
+
 The depth camera deprojection is CUDA accelerated.
 
 ## Dependencies

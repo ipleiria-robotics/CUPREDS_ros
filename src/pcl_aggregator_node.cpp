@@ -1,6 +1,8 @@
 /*
 * Copyright (c) 2023 Carlos Tojal.
 * All rights reserved.
+*
+* This node subscribes all the sensor data, and publishes the merged point cloud.
 */
 
 #include "ros/ros.h"
