@@ -8,6 +8,7 @@ The depth camera deprojection is CUDA accelerated.
 
 ## Dependencies
 - PCL
+- Eigen 3
 - CUDA
 
 ## Build
