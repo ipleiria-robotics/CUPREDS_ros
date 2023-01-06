@@ -1,14 +1,15 @@
 # SafeForest Point Cloud Aggregator
 
-This package is intended to provide functionality to aggregate pointclouds provenient from different sources. For instance, a deprojected depth camera and LiDAR sensors. The hardware tested during the development of this package was the RealSense D435i depth camera and 3 Livox Horizon LiDAR sensors merged with a Livox Hub.
+This package is intended to provide functionality to aggregate pointclouds provenient from different sources. For instance, a deprojected depth camera and LiDAR sensors. The depth camera deprojection is CUDA accelerated.
 
-To replicate this exact scenario, it is recommended to use the official RealSense ROS wrapper as well as the Livox ROS wrapper, they provide the data already published through topics, and deal with little details we don't have to worry about.
+The hardware tested during the development of this package was the RealSense D435i depth camera and 3 Livox Horizon LiDAR sensors merged with a Livox Hub.
 
-The depth camera deprojection is CUDA accelerated.
+To replicate this exact scenario, it is recommended to use the official RealSense ROS wrapper as well as the Livox ROS wrapper. They provide the data already published through topics, and deal with little details we don't have to worry about.
 
 ## Dependencies
 - PCL
-- CUDA
+- Eigen 3
+- CUDA Toolkit (+ CUDA-enabled GPU)
 
 ## Build
 - Install the dependencies.
@@ -17,12 +18,19 @@ The depth camera deprojection is CUDA accelerated.
 - Source the workspace setup: ```source devel/setup.bash```.
 - Start the nodes as needed.
 
-## Topics
-### Subscribed topics
-- ```/camera/color/camera_info```: color camera intrinsics, etc.
-- ```/camera/color/image_raw```: color camera image.
-- ```/camera/depth/camera_info```: depth camera intrinsics, etc.
-- ```/camera/depth/image_raw```: depth camera image.
+## Nodes
+### pcl_aggregator_node
+#### Parameters
+- ```n_pointclouds```: Number of PointClouds to be subscribed. Default: 2.
+- ```publish_rate```: Rate at which to publish the merged pointcloud specified in Hz. Best effort, this is the maximum. Default: 20.
+#### Subscribed topics
+- ```pointcloudn```: PointCloud topics, where $0 \leq n < n_{pointclouds}$. Example: ```pointcloud0```. Type: sensor_msgs/PointCloud2.
+#### Published topics
+- ```merged_pointcloud```: Merged PointCloud data. Publish at the rate specified on the ```publish_rate``` parameter. Type: sensor_msgs/PointCloud2.
 
-### Published topics
-- ```/pointcloud```: merged PointCloud.
+### rgbd_deprojector_node
+#### Subscribed topics
+- ```/camera/depth/camera_info```: Depth camera information data. Type: sensor_msgs/CameraInfo.
+- ```/camera/depth/image_rect_raw```: Depth camera image. Type: sensor_msgs/Image.
+#### Published topics
+- ```/pointcloud```: deprojected PointCloud data. Type: sensor_msgs/PointCloud2.
