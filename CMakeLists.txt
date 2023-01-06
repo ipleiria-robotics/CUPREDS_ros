@@ -11,7 +11,6 @@ find_package(catkin REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-find_package( PCL REQUIRED )
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -84,6 +83,10 @@ find_package( PCL REQUIRED )
 ##   * uncomment the "generate_dynamic_reconfigure_options" section below
 ##     and list every .cfg file to be processed
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs)
+find_package(Eigen3 REQUIRED)
+find_package(PCL REQUIRED)
+find_package(OpenMP REQUIRED)
+find_package(CUDA REQUIRED)
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
@@ -117,6 +120,8 @@ include_directories(
 include
 ${catkin_INCLUDE_DIRS}
 ${PCL_INCLUDE_DIRS}
+${Eigen_INCLUDE_DIRS}
+${CUDA_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -133,8 +138,17 @@ ${PCL_INCLUDE_DIRS}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/pcl_aggregator_node.cpp)
+cuda_add_library(
+    cuda_rgbd_deprojection STATIC src/rgbd_deprojection.cu
+)
+add_library(
+    RGBDDeprojectorClass STATIC src/rgbd_deprojection.cu src/RGBDDeprojector.cpp
+)
 add_executable(
-    ${PROJECT_NAME}_node src/pcl_aggregator_node.cpp
+    pcl_aggregator_node src/pcl_aggregator_node.cpp
+)
+add_executable(
+    rgbd_deprojector_node src/rgbd_deprojector_node.cpp
 )
 
 ## Rename C++ executable without prefix
@@ -146,12 +160,15 @@ add_executable(
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(RGBDDeprojectorClass cuda_rgbd_deprojection)
+add_dependencies(rgbd_deprojector_node RGBDDeprojectorClass)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
+target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} RGBDDeprojectorClass)
 
 #############
 ## Install ##
