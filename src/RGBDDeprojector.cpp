@@ -87,6 +87,8 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
             point.y = (y - this->K(1, 2)) * msg->data[index] / this->K(1, 1);
             point.z = msg->data[index];
 
+            // ROS_INFO("Point: %f, %f, %f", point.x, point.y, point.z);
+
             this->cloud.push_back(point);
         }
     }
@@ -100,7 +102,7 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
     // compute the total deprojection duration in ms
     float deprojection_duration = (end.tv_usec - start.tv_usec) / 1000.0;
 
-    ROS_INFO("Deprojection duration: %f ms", deprojection_duration);
+    // ROS_INFO("Deprojection duration: %f ms", deprojection_duration);
 
     // check if a publisher was given
     if(this->point_cloud_pub == nullptr) {
