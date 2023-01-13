@@ -17,8 +17,13 @@
 
 #define INFO_QUEUES_LEN 1000
 #define IMAGE_QUEUES_LEN 1000
+#define PCL_QUEUES_LEN 1000
 
 int main(int argc, char **argv) {
+
+    ROS_INFO("RGBD deprojector node starting...");
+
+    ros::init(argc, argv, "rgbd_deprojector_node");
 
     ros::NodeHandle nh;
     std::string depth_info_topic, depth_image_topic;
@@ -37,8 +42,11 @@ int main(int argc, char **argv) {
     ros::Subscriber depth_image_sub = nh.subscribe(DEPTH_IMAGE_TOPIC, IMAGE_QUEUES_LEN, &RGBDDeprojector::depthImageCallback, &rgbd_deprojector);
     ROS_INFO("Subscribing depth camera image");
 
+    ros::Publisher pointcloud_pub = nh.advertise<sensor_msgs::PointCloud2>("pointcloud", PCL_QUEUES_LEN);
+    rgbd_deprojector->setPointCloudPublisher(&pointcloud_pub);
+
     // TODO: publish deprojected point cloud
-    ros::spin();    
+    ros::spin();
 
     return 0;
 }

@@ -1,4 +1,3 @@
 <launch>
-    
     <node name="rgbd_deprojector" pkg="pcl_aggregator" type="rgbd_deprojector_node" />
 </launch>
