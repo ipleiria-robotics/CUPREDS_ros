@@ -86,7 +86,6 @@ find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 find_package(OpenMP REQUIRED)
-find_package(CUDA REQUIRED)
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
@@ -140,8 +139,8 @@ ${CUDA_INCLUDE_DIRS}
 # add_executable(${PROJECT_NAME}_node src/pcl_aggregator_node.cpp)
 
 # compile the RGBDDeprojector class with nvcc, because we are calling a cuda kernel
-cuda_add_library(
-    RGBDDeprojectorClass STATIC src/RGBDDeprojector.cu
+add_library(
+    RGBDDeprojectorClass STATIC src/RGBDDeprojector.cpp
 )
 
 add_executable(

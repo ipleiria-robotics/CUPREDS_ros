@@ -33,19 +33,18 @@ int main(int argc, char **argv) {
     nh.param<std::string>("depth_image_topic", depth_image_topic, DEPTH_IMAGE_TOPIC);
 
     // instantiate a RGBD deprojector object
-    RGBDDeprojector rgbd_deprojector = RGBDDeprojector();
+    RGBDDeprojector *rgbd_deprojector = new RGBDDeprojector();
 
     // subscribe depth parameters and image
-    ros::Subscriber depth_info_sub = nh.subscribe(DEPTH_INFO_TOPIC, INFO_QUEUES_LEN, &RGBDDeprojector::depthInfoCallback, &rgbd_deprojector);
+    ros::Subscriber depth_info_sub = nh.subscribe(DEPTH_INFO_TOPIC, INFO_QUEUES_LEN, &RGBDDeprojector::depthInfoCallback, rgbd_deprojector);
     ROS_INFO("Subscribing depth camera info");
 
-    ros::Subscriber depth_image_sub = nh.subscribe(DEPTH_IMAGE_TOPIC, IMAGE_QUEUES_LEN, &RGBDDeprojector::depthImageCallback, &rgbd_deprojector);
+    ros::Subscriber depth_image_sub = nh.subscribe(DEPTH_IMAGE_TOPIC, IMAGE_QUEUES_LEN, &RGBDDeprojector::depthImageCallback, rgbd_deprojector);
     ROS_INFO("Subscribing depth camera image");
 
     ros::Publisher pointcloud_pub = nh.advertise<sensor_msgs::PointCloud2>("pointcloud", PCL_QUEUES_LEN);
     rgbd_deprojector->setPointCloudPublisher(&pointcloud_pub);
-
-    // TODO: publish deprojected point cloud
+    
     ros::spin();
 
     return 0;
