@@ -140,16 +140,16 @@ ${CUDA_INCLUDE_DIRS}
 
 # compile the RGBDDeprojector class with nvcc, because we are calling a cuda kernel
 add_library(
-    RGBDDeprojectorClass STATIC src/RGBDDeprojector.cpp
+    RGBDDeprojector STATIC src/core/RGBDDeprojector.cpp
 )
 
 add_executable(
-    rgbd_deprojector_node src/rgbd_deprojector_node.cpp
+    rgbd_deprojector_node src/nodes/rgbd_deprojector_node.cpp
 )
-add_dependencies(rgbd_deprojector_node RGBDDeprojectorClass)
+add_dependencies(rgbd_deprojector_node RGBDDeprojector)
 
 add_executable(
-    pcl_aggregator_node src/pcl_aggregator_node.cpp
+    pcl_aggregator_node src/nodes/pcl_aggregator_node.cpp
 )
 
 ## Rename C++ executable without prefix
@@ -166,9 +166,9 @@ add_executable(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(RGBDDeprojectorClass ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES})
+target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES})
 target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} RGBDDeprojectorClass)
+target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} RGBDDeprojector)
 
 #############
 ## Install ##

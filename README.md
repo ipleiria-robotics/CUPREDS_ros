@@ -1,6 +1,8 @@
 # SafeForest Point Cloud Aggregator
 
-This package is intended to provide functionality to aggregate pointclouds provenient from different sources. For instance, a deprojected depth camera and LiDAR sensors. The depth camera deprojection is CUDA accelerated.
+This package is intended to provide functionality to aggregate pointclouds provenient from different sources. For instance, a deprojected depth camera and LiDAR sensors. Currently, the depth camera deprojection is done solely with CPU processing, but a version with CUDA computing is under development.
+
+The RGBD deprojector subscribes for both a color image and a depth aligned to color image. Note that the depth frame must really be aligned, because the color frame is used to add color to the points.
 
 The hardware tested during the development of this package was the RealSense D435i depth camera and 3 Livox Horizon LiDAR sensors merged with a Livox Hub.
 
@@ -30,7 +32,8 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 
 ### rgbd_deprojector_node
 #### Subscribed topics
-- ```/camera/depth/camera_info```: Depth camera information data. Type: sensor_msgs/CameraInfo.
-- ```/camera/depth/image_rect_raw```: Depth camera image. Type: sensor_msgs/Image.
+- ```/camera/aligned_depth_to_color/camera_info```: Depth camera information data. Type: sensor_msgs/CameraInfo.
+- ```/camera/aligned_depth_to_color/image_raw```: Depth frame aligned to the RGB frame. Type: sensor_msgs/Image.
+- ```/camera/color/image_raw```: Color frame. Type: sensor_msgs/Image.
 #### Published topics
 - ```/pointcloud```: deprojected PointCloud data. Type: sensor_msgs/PointCloud2.
