@@ -1,38 +1,19 @@
 #include "RGBDDeprojector.h"
 
 RGBDDeprojector::RGBDDeprojector() {
-    this->K = Eigen::Matrix3f::Identity();
-    this->points = NULL;
+    this->K = Eigen::Matrix3d::Identity();
 }
 
 RGBDDeprojector::~RGBDDeprojector() {
-    // on instance destruction, free all allocated pointers to avoid memory leaks
-    this->freePoints();
+
 }
 
-bool RGBDDeprojector::allocPointsIfNotAllocated(size_t size) {
-    if(this->points == NULL) {
-        this->points = (Eigen::Vector3f *)malloc(size * sizeof(Eigen::Vector3f));
-        if(this->points == NULL) {
-            ROS_ERROR("Error allocating memory for deprojected points: %s", strerror(errno));
-            return false;
-        }
-    }
-    return true;
-}
-
-void RGBDDeprojector::freePoints() {
-    if(this->points != NULL) {
-        free(this->points);
-        this->points = NULL;
-    }
-}
-
-Eigen::Matrix3f RGBDDeprojector::getK() {
+Eigen::Matrix<double, 3, 3> RGBDDeprojector::getK() {
     return this->K;
 }
 
-void RGBDDeprojector::setK(Eigen::Matrix3f K) {
+void RGBDDeprojector::setK(Eigen::Matrix<double, 3, 3> K) {
+    ROS_INFO("K updated");
     this->K = K;
 }
 
@@ -51,7 +32,7 @@ void RGBDDeprojector::depthInfoCallback(const sensor_msgs::CameraInfo::ConstPtr&
     for(int i = 0; i < 9; i++) {
         int row = i / 3;
         int col = i % 3;
-        this->K(row, col) = msg->K[i];
+        this->K(row, col) = (double) msg->K[i];
     }
 
     // get the camera frame id
@@ -70,24 +51,46 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
         return;
     }
 
-    // allocate memory for the deprojected points
-    if(!this->allocPointsIfNotAllocated(msg->width * msg->height)) {
-        return;
-    }
-
     // clear the point cloud before filling
     this->cloud.clear();
     // deproject the depth image
     for(size_t x = 0; x < msg->width; x++) {
         for(size_t y = 0; y < msg->height; y++) {
             size_t index = y * msg->width + x;
-            
-            pcl::PointXYZ point;
-            point.x = (x - this->K(0, 2)) * msg->data[index] / this->K(0, 0);
-            point.y = (y - this->K(1, 2)) * msg->data[index] / this->K(1, 1);
-            point.z = msg->data[index];
 
-            // ROS_INFO("Point: %f, %f, %f", point.x, point.y, point.z);
+            /*
+            Eigen::Matrix<double, 3, 1> pixel_vector = {
+                (double) x,
+                (double) y,
+                1.0
+            };
+
+            Eigen::Matrix<double, 3, 1> point_vector = (this->K * pixel_vector) / msg->data[index];
+            */
+            
+            pcl::PointXYZRGB point;
+            double z = (double) msg->data[index] * 50 / 256;
+            // deproject the point position
+            point.x = (x - this->K(0, 2)) * z / this->K(0, 0);
+            point.y = (y - this->K(1, 2)) * z / this->K(1, 1);
+            point.z = z;
+            /*
+            point.x = point_vector(0);
+            point.y = point_vector(1);
+            point.z = point_vector(2);
+            */
+
+            // check if a color frame is present
+            if(this->last_color_image != nullptr) {
+                // fill the point color
+                // 8 bits for each channel (0-255), 3 channels (BGR)
+                /*
+                point.rgb = this->last_color_image->at<cv::Vec3b>(y, x)[2] << 16 |
+                            this->last_color_image->at<cv::Vec3b>(y, x)[1] << 8 |
+                            this->last_color_image->at<cv::Vec3b>(y, x)[0];
+                            */
+                
+            }
 
             this->cloud.push_back(point);
         }
@@ -117,5 +120,15 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
     this->point_cloud_pub->publish(point_cloud);
 }
 
+void RGBDDeprojector::colorImageCallback(const sensor_msgs::Image::ConstPtr& msg) {
 
-
+    // store the last received color image as a OpenCV matrix
+    cv_bridge::CvImagePtr cv_ptr;
+    try {
+        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    } catch (cv_bridge::Exception& e) {
+        ROS_ERROR("Error converting color image to OpenCV matrix: %s", e.what());
+        return;
+    }
+    this->last_color_image = &(cv_ptr->image);
+}

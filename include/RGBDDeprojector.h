@@ -5,10 +5,13 @@
 #include "sensor_msgs/CameraInfo.h"
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/PointCloud2.h"
+#include "sensor_msgs/image_encodings.h"
+#include <cv_bridge/cv_bridge.h>
 #include <eigen3/Eigen/Dense>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <opencv2/opencv.hpp>
 #include <cstring>
 #include <cerrno>
 #include <sys/time.h>
@@ -16,28 +19,26 @@
 class RGBDDeprojector {
 
     private:
-        Eigen::Matrix3f K;
+        Eigen::Matrix<double, 3, 3> K;
         std::string camera_frame_id;
-        pcl::PointCloud<pcl::PointXYZ> cloud;
-        Eigen::Vector3f *points = NULL;
+        pcl::PointCloud<pcl::PointXYZRGB> cloud;
         ros::Publisher *point_cloud_pub = nullptr;
+        cv::Mat *last_color_image = nullptr;
 
     public:
         RGBDDeprojector();
         ~RGBDDeprojector();
 
-        // host pointcloud allocation and deallocation
-        bool allocPointsIfNotAllocated(size_t size);
-        void freePoints();
-
-        Eigen::Matrix3f getK();
-        void setK(Eigen::Matrix3f K);
+        Eigen::Matrix3d getK();
+        void setK(Eigen::Matrix3d K);
 
         ros::Publisher getPointCloudPublisher();
         void setPointCloudPublisher(ros::Publisher *point_cloud_pub);
 
         void depthInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
         void depthImageCallback(const sensor_msgs::Image::ConstPtr& msg);
+
+        void colorImageCallback(const sensor_msgs::Image::ConstPtr& msg);
 };
 
 #endif

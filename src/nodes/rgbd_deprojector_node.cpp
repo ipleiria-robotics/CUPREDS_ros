@@ -12,8 +12,9 @@
 #include <eigen3/Eigen/Dense>
 #include "RGBDDeprojector.h"
 
-#define DEPTH_INFO_TOPIC "/camera/depth/camera_info"
-#define DEPTH_IMAGE_TOPIC "/camera/depth/image_rect_raw"
+#define DEPTH_INFO_TOPIC "/camera/aligned_depth_to_color/camera_info"
+#define DEPTH_IMAGE_TOPIC "/camera/aligned_depth_to_color/image_raw"
+#define COLOR_IMAGE_TOPIC "/camera/color/image_raw"
 
 #define INFO_QUEUES_LEN 1000
 #define IMAGE_QUEUES_LEN 1000
@@ -26,11 +27,12 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "rgbd_deprojector_node");
 
     ros::NodeHandle nh;
-    std::string depth_info_topic, depth_image_topic;
+    std::string depth_info_topic, depth_image_topic, color_image_topic;
 
     // get the configuration params
     nh.param<std::string>("depth_info_topic", depth_info_topic, DEPTH_INFO_TOPIC);
     nh.param<std::string>("depth_image_topic", depth_image_topic, DEPTH_IMAGE_TOPIC);
+    nh.param<std::string>("color_image_topic", color_image_topic, COLOR_IMAGE_TOPIC);
 
     // instantiate a RGBD deprojector object
     RGBDDeprojector *rgbd_deprojector = new RGBDDeprojector();
@@ -41,6 +43,9 @@ int main(int argc, char **argv) {
 
     ros::Subscriber depth_image_sub = nh.subscribe(DEPTH_IMAGE_TOPIC, IMAGE_QUEUES_LEN, &RGBDDeprojector::depthImageCallback, rgbd_deprojector);
     ROS_INFO("Subscribing depth camera image");
+
+    ros::Subscriber color_image_sub = nh.subscribe(COLOR_IMAGE_TOPIC, IMAGE_QUEUES_LEN, &RGBDDeprojector::colorImageCallback, rgbd_deprojector);
+    ROS_INFO("Subscribing color camera image");
 
     ros::Publisher pointcloud_pub = nh.advertise<sensor_msgs::PointCloud2>("pointcloud", PCL_QUEUES_LEN);
     rgbd_deprojector->setPointCloudPublisher(&pointcloud_pub);

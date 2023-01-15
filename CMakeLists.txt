@@ -82,10 +82,11 @@ find_package(catkin REQUIRED)
 ##     find_package(catkin REQUIRED COMPONENTS ...)
 ##   * uncomment the "generate_dynamic_reconfigure_options" section below
 ##     and list every .cfg file to be processed
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs pcl_conversions cv_bridge)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(OpenCV REQUIRED)
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
@@ -120,6 +121,7 @@ include
 ${catkin_INCLUDE_DIRS}
 ${PCL_INCLUDE_DIRS}
 ${Eigen_INCLUDE_DIRS}
+${OpenCV_INCLUDE_DIRS}
 ${CUDA_INCLUDE_DIRS}
 )
 
@@ -166,9 +168,9 @@ add_executable(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES})
+target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} RGBDDeprojector)
+target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} RGBDDeprojector)
 
 #############
 ## Install ##
