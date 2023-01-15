@@ -11,7 +11,10 @@ PointCloudList::PointCloudList() {
 }
 
 PointCloudList::~PointCloudList() {
-	// TODO: remove every node from the list
+	// when deleting the list, free every node to avoid memory leaks
+	while(this->length > 0) {
+		this->removeFromHead();
+	}
 }
 
 size_t PointCloudList::getLength() {

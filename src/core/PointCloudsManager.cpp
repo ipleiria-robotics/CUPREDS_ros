@@ -16,6 +16,9 @@ PointCloudsManager::~PointCloudsManager() {
 	}
 	// free the array
 	free(this->cloudManagers);
+
+	// free the list
+	delete this->clouds;
 }
 
 size_t PointCloudsManager::getNClouds() {
@@ -45,6 +48,7 @@ void PointCloudsManager::clean() {
 	for(size_t i = 0; i < this->n_clouds; i++) {
 		if(this->cloudManagers[i] != nullptr) {
 			if(cur_timestamp - this->cloudManagers[i]->getTimestamp() > max_age) {
+				this->clouds->remove(this->cloudManagers[i]->getCloud()); // remove from the final list
 				delete this->cloudManagers[i];
 				this->cloudManagers[i] = nullptr;
 			}
@@ -65,5 +69,16 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::st
 		} else {
 			this->cloudManagers[index]->addCloud(cloud);
 		}
+
+		// clean the old pointclouds
+		// doing this only after insertion avoids instance immediate destruction and recreation upon updating
+		this->clean();
+
+		// this point cloud is very recent, so it should be kept by now
+		this->clouds->insertOnTail(cloud);
 }
 
+// this is the filtered raw list returned from the manager
+PointCloudList *PointCloudsManager::getClouds() {
+	return this->clouds;
+}

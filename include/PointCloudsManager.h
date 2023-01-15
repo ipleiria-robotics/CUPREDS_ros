@@ -11,6 +11,7 @@
 
 // this class manages the stored point clouds
 // keep an array of point clouds, the last one for each source
+// !!! POINT CLOUDS MUST BE FED HERE ALREADY TRANSFORMED
 class PointCloudsManager {
 
 	private:
