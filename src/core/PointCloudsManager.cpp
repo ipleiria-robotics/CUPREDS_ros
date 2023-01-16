@@ -129,7 +129,12 @@ void PointCloudsManager::clearMergedCloud() {
 }
 
 void PointCloudsManager::downsampleMergedCloud() {
-	// TODO
+	
+	// create a downsampler instance
+	pcl::VoxelGrid<pcl::PointXYZ> downsampler;
+	downsampler.setInputCloud(this->mergedCloud);
+	downsampler.setLeafSize(FILTER_VOXEL_SIZE, FILTER_VOXEL_SIZE, FILTER_VOXEL_SIZE);
+	downsampler.filter(*this->mergedCloud); // replace with the downsampled cloud
 }
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudsManager::getMergedCloud() {
@@ -154,7 +159,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudsManager::getMergedCloud() {
 		}
 	}
 
-	this->downsampleMergedCloud(); // TODO
+	this->downsampleMergedCloud();
 
 	return this->mergedCloud;
 }

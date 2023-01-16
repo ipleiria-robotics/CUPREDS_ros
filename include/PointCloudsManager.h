@@ -15,9 +15,12 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
+#include <pcl/filters/voxel_grid.h>
 #include <eigen3/Eigen/Dense>
 #include "PointCloudList.h"
 #include "StreamManager.h"
+
+#define FILTER_VOXEL_SIZE 0.01f // 1cm voxels
 
 // this class manages the stored point clouds
 // keep an array of point clouds, the last one for each source

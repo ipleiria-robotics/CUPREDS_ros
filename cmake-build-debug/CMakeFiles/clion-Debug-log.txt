@@ -1,0 +1,17 @@
+/snap/clion/219/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/219/bin/ninja/linux/ninja -G Ninja -S /media/safeforest/Barracuda/SafeForest/Source/pcl_aggregator_ws/src/pcl_aggregator -B /media/safeforest/Barracuda/SafeForest/Source/pcl_aggregator_ws/src/pcl_aggregator/cmake-build-debug
+-- The CXX compiler identification is GNU 9.4.0
+-- The CUDA compiler identification is unknown
+CMake Error at /snap/clion/219/bin/cmake/linux/share/cmake-3.24/Modules/CMakeDetermineCUDACompiler.cmake:602 (message):
+  Failed to detect a default CUDA architecture.
+
+  
+
+  Compiler output:
+
+Call Stack (most recent call first):
+  CMakeLists.txt:2 (project)
+
+
+-- Configuring incomplete, errors occurred!
+See also "/media/safeforest/Barracuda/SafeForest/Source/pcl_aggregator_ws/src/pcl_aggregator/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "/media/safeforest/Barracuda/SafeForest/Source/pcl_aggregator_ws/src/pcl_aggregator/cmake-build-debug/CMakeFiles/CMakeError.log".
