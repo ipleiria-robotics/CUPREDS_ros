@@ -9,12 +9,14 @@
 #include "sensor_msgs/CameraInfo.h"
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/PointCloud2.h"
+#include "tf/transform_listener.h"
 #include "PCLRegistrator.h"
 #include "common.h"
 
 #define POINTCLOUD_TOPIC "pointcloud"
 
 #define MAX_POINTCLOUD_AGE 2
+#define ROBOT_BASE "base_link"
 
 #define PCL_QUEUES_LEN 1000
 
@@ -27,9 +29,11 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
 
     int n_pointclouds, max_pointcloud_age;
+    std::string robot_base;
 
     nh.param<int>("n_pointclouds", n_pointclouds, 1);
     nh.param<int>("max_pointcloud_age", max_pointcloud_age, MAX_POINTCLOUD_AGE);
+    nh.param<std::string>("robot_base", robot_base, ROBOT_BASE);
 
     // allocate the subscribers
     ros::Subscriber *pcl_subscribers;
@@ -39,6 +43,8 @@ int main(int argc, char **argv) {
     }
 
     PCLRegistrator *registrator = new PCLRegistrator(n_pointclouds, max_pointcloud_age);
+
+    // TODO: listen the transform between the pointclouds frame ids and the robot base
 
     // initialize the subscribers
     #pragma omp parallel for

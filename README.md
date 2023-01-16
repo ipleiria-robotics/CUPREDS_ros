@@ -27,6 +27,7 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 #### Parameters
 - ```n_pointclouds```: Number of PointClouds to be subscribed. Default: 2.
 - ```max_pointcloud_age```: The PointClouds considered to register are the ones newer than the age specified on this parameter in seconds. Default: 2.
+- ```robot_base```: The frame to considered as robot base. Default: base_link.
 #### Subscribed topics
 - ```pointcloudn```: PointCloud topics, where $0 \leq n < n_{pointclouds}$. Example: ```pointcloud0```. Type: sensor_msgs/PointCloud2.
 #### Published topics

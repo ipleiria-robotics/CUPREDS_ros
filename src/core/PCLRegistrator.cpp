@@ -24,6 +24,8 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
     pcl::PointCloud<pcl::PointXYZ> *cloud = new pcl::PointCloud<pcl::PointXYZ>();
     pcl::fromROSMsg(*msg, *cloud);
 
+    // TODO: transform the pointcloud translation and rotation
+
     // feed the manager with the new pointcloud
     this->manager->addCloud(cloud, topicName);
 }
