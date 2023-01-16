@@ -143,7 +143,7 @@ ${CUDA_INCLUDE_DIRS}
 # compile the RGBDDeprojector class with nvcc, because we are calling a cuda kernel
 add_library(RGBDDeprojector STATIC src/core/RGBDDeprojector.cpp)
 add_library(PCLRegistrator STATIC src/core/PCLRegistrator.cpp)
-add_library(PCLStamped STATIC src/core/PCLStamped.cpp)
+add_library(StreamManager STATIC src/core/StreamManager.cpp)
 add_library(PointCloudList STATIC src/core/PointCloudList.cpp)
 add_library(PointCloudsManager STATIC src/core/PointCloudsManager.cpp)
 
@@ -151,7 +151,7 @@ add_executable(
     rgbd_deprojector_node src/nodes/rgbd_deprojector_node.cpp
 )
 add_dependencies(rgbd_deprojector_node RGBDDeprojector)
-add_dependencies(PointCloudsManager PointCloudList PCLStamped)
+add_dependencies(PointCloudsManager PointCloudList StreamManager)
 add_dependencies(PCLRegistrator PointCloudsManager)
 
 add_executable(
@@ -174,7 +174,7 @@ add_executable(
 # )
 target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(PointCloudList ${PCL_LIBRARIES})
-target_link_libraries(PointCloudsManager ${PCL_LIBRARIES} ${OPENMP_LIBRARIES} PointCloudList PCLStamped)
+target_link_libraries(PointCloudsManager ${PCL_LIBRARIES} ${OPENMP_LIBRARIES} PointCloudList StreamManager)
 target_link_libraries(PCLRegistrator ${catkin_LIBRARIES} PointCloudsManager)
 target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} PCLRegistrator)
 target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} RGBDDeprojector)

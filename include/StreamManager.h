@@ -1,5 +1,5 @@
-#ifndef PCL_STAMPED_
-#define PCL_STAMPED_
+#ifndef STREAM_MANAGER_H
+#define STREAM_MANAGER_H
 
 #include <iostream>
 #include <cstring>
@@ -9,13 +9,13 @@
 
 // this class keeps a point cloud with a timestamp
 // it is useful to implement the point cloud maximum age
-class PCLStamped {
+class StreamManager {
     private:
         pcl::PointCloud<pcl::PointXYZ> *cloud;
         time_t timestamp;
     public:
-        PCLStamped(pcl::PointCloud<pcl::PointXYZ> *cloud);
-		~PCLStamped();
+        StreamManager(pcl::PointCloud<pcl::PointXYZ> *cloud);
+		~StreamManager();
 		
 		void addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud);
 		pcl::PointCloud<pcl::PointXYZ> *getCloud();

@@ -25,7 +25,7 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 ## Nodes
 ### pcl_aggregator_node
 #### Parameters
-- ```n_pointclouds```: Number of PointClouds to be subscribed. Default: 2.
+- ```n_pointclouds```: Number of PointClouds to be subscribed. Default: 1.
 - ```max_pointcloud_age```: The PointClouds considered to register are the ones newer than the age specified on this parameter in seconds. Default: 2.
 - ```robot_base```: The frame to considered as robot base. Default: base_link.
 #### Subscribed topics

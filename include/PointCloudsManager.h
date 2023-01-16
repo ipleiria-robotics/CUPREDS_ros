@@ -7,7 +7,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include "PointCloudList.h"
-#include "PCLStamped.h"
+#include "StreamManager.h"
 
 // this class manages the stored point clouds
 // keep an array of point clouds, the last one for each source
@@ -18,7 +18,7 @@ class PointCloudsManager {
 		size_t n_sources;
 		time_t max_age;
 		// this array of instances functions almost as a hashtable. details explained on "addCloud"
-		PCLStamped **cloudManagers = nullptr; // array of point cloud managers - fixed size = n_clouds
+		StreamManager **cloudManagers = nullptr; // array of point cloud managers - fixed size = n_clouds
 		PointCloudList *clouds = nullptr; // list of the point clouds to consider
 		void allocCloudManagers();
 		void clean(); // remove clouds older than "maxAge"

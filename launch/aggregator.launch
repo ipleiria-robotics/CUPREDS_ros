@@ -1,4 +1,5 @@
 <launch>
-    <node pkg="tf" type="static_transform_publisher" name="map_to_camera" args="0 0 0 -1.5708 1.5708 0 camera_depth_optical_frame map 100" />
-    <node name="rgbd_deprojector" pkg="pcl_aggregator" type="rgbd_deprojector_node" output="screen" />
+    <arg name="n_pointclouds" value="2" />
+    <arg name="robot_base" value="base_link" />
+    <node name="pcl_aggregator" pkg="pcl_aggregator" type="pcl_aggregator_node" output="screen" />
 </launch>

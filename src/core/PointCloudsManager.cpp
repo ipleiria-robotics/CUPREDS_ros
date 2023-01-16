@@ -26,7 +26,7 @@ size_t PointCloudsManager::getNClouds() {
 }
 
 void PointCloudsManager::allocCloudManagers() {
-	if((this->cloudManagers = (PCLStamped**) malloc(this->n_sources * sizeof(PCLStamped*))) == NULL) {
+	if((this->cloudManagers = (StreamManager**) malloc(this->n_sources * sizeof(StreamManager*))) == NULL) {
 		std::cerr << "Error allocating point cloud managers: " << strerror(errno) << std::endl;
 		return;
 	}
@@ -65,7 +65,7 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::st
 		// set the pointcloud as the latest of this source
 		// check if it was ever defined
 		if(this->cloudManagers[index] == nullptr) {
-			this->cloudManagers[index] = new PCLStamped(cloud);
+			this->cloudManagers[index] = new StreamManager(cloud);
 		} else {
 			this->cloudManagers[index]->addCloud(cloud);
 		}

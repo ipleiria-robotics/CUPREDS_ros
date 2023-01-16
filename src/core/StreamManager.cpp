@@ -1,14 +1,14 @@
-#include "PCLStamped.h"
+#include "StreamManager.h"
 
-PCLStamped::PCLStamped(pcl::PointCloud<pcl::PointXYZ> *cloud) {
+StreamManager::StreamManager(pcl::PointCloud<pcl::PointXYZ> *cloud) {
 	this->addCloud(cloud);
 }
 
-PCLStamped::~PCLStamped() {
+StreamManager::~StreamManager() {
 	delete this->cloud;
 }
 
-void PCLStamped::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud) {
+void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud) {
 	if(this->cloud != nullptr) {
 		delete this->cloud;
 	}
@@ -19,10 +19,10 @@ void PCLStamped::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud) {
 	}
 }
 
-pcl::PointCloud<pcl::PointXYZ> *PCLStamped::getCloud() {
+pcl::PointCloud<pcl::PointXYZ> *StreamManager::getCloud() {
 	return this->cloud;
 }
 
-time_t PCLStamped::getTimestamp() {
+time_t StreamManager::getTimestamp() {
 	return this->timestamp;
 }
