@@ -1,3 +1,10 @@
+/*
+* Copyright (c) 2023 Carlos Tojal.
+* All rights reserved.
+*
+* Doubly linked circular list of PointClouds implementation.
+*/
+
 #include "PointCloudList.h"
 
 PointCloudList::PointCloudList() {

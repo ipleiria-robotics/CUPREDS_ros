@@ -1,3 +1,11 @@
+/*
+* Copyright (c) 2023 Carlos Tojal.
+* All rights reserved.
+*
+* Manage the different PointCloud managers and lists, keeping the latest and removing the ones
+* older than the max defined age.
+*/
+
 #ifndef POINTCLOUDS_MANAGER_H_
 #define POINTCLOUDS_MANAGER_H_
 

@@ -1,3 +1,10 @@
+/*
+* Copyright (c) 2023 Carlos Tojal.
+* All rights reserved.
+*
+* Do pointcloud registration from the multiple sources.
+*/
+
 #ifndef PCL_REGISTRATION_
 #define PCL_REGISTRATION_
 

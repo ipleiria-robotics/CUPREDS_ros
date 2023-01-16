@@ -1,3 +1,9 @@
+/*
+* Copyright (c) 2023 Carlos Tojal.
+* All rights reserved.
+*
+* Do pointcloud registration from the multiple sources.
+*/
 #include "PCLRegistrator.h"
 
 PCLRegistrator::PCLRegistrator(size_t n_sources, time_t max_pointcloud_age) {

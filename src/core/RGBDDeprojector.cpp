@@ -1,3 +1,10 @@
+/*
+* Copyright (c) 2023 Carlos Tojal.
+* All rights reserved.
+*
+* Deproject depth images to point clouds.
+*/
+
 #include "RGBDDeprojector.h"
 
 RGBDDeprojector::RGBDDeprojector() {

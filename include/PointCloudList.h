@@ -1,3 +1,10 @@
+/*
+* Copyright (c) 2023 Carlos Tojal.
+* All rights reserved.
+*
+* Doubly linked circular list of PointClouds implementation.
+*/
+
 #ifndef POINT_CLOUD_LIST_
 #define POINT_CLOUD_LIST_
 

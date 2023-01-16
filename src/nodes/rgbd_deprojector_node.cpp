@@ -20,6 +20,8 @@
 #define IMAGE_QUEUES_LEN 1000
 #define PCL_QUEUES_LEN 1000
 
+#define DEPROJECTOR_PUBLISH_RATE 30
+
 int main(int argc, char **argv) {
 
     ROS_INFO("RGBD deprojector node starting...");
@@ -28,11 +30,13 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle nh;
     std::string depth_info_topic, depth_image_topic, color_image_topic;
+    int publish_rate;
 
     // get the configuration params
     nh.param<std::string>("depth_info_topic", depth_info_topic, DEPTH_INFO_TOPIC);
     nh.param<std::string>("depth_image_topic", depth_image_topic, DEPTH_IMAGE_TOPIC);
     nh.param<std::string>("color_image_topic", color_image_topic, COLOR_IMAGE_TOPIC);
+    nh.param<int>("publish_rate", publish_rate, DEPROJECTOR_PUBLISH_RATE);
 
     // instantiate a RGBD deprojector object
     RGBDDeprojector *rgbd_deprojector = new RGBDDeprojector();

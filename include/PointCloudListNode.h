@@ -1,4 +1,0 @@
-#ifndef POINT_CLOUD_LIST_NODE_
-#define POINT_CLOUD_LIST_NODE_
-
-#endif

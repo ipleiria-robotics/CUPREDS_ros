@@ -1,3 +1,11 @@
+/*
+* Copyright (c) 2023 Carlos Tojal.
+* All rights reserved.
+*
+* Manage the PointClouds received by a stream. Keeps the latest PointCloud received,
+* registering the timestamp of the update and doing the transformation as set by the tf.
+*/
+
 #include "StreamManager.h"
 
 StreamManager::StreamManager() {
