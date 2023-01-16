@@ -21,7 +21,7 @@
 // it is useful to implement the point cloud maximum age
 class StreamManager {
     private:
-        pcl::PointCloud<pcl::PointXYZ> *cloud;
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
         time_t timestamp = -1; // timestamp of the last update
         Eigen::Affine3d *transform = nullptr;
         bool transformComputed = false; // this is to prevent transforming the cloud multiple times
@@ -31,10 +31,12 @@ class StreamManager {
         StreamManager();
 		~StreamManager();
 		
-		void addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud);
-		pcl::PointCloud<pcl::PointXYZ> *getCloud();
+		void addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr getCloud();
 		time_t getTimestamp();
         void setTransform(Eigen::Affine3d *transform);
+
+        bool hasCloudReady();
 
 };
 

@@ -29,25 +29,25 @@ class PointCloudsManager {
 		// the array of instances below functions almost as a hashtable. details explained on "addCloud"
 		StreamManager **cloudManagers = nullptr; // array of point cloud managers - fixed size = n_clouds
 		PointCloudList *clouds = nullptr; // list of the point clouds to consider
-		pcl::PointCloud<pcl::PointXYZ> *mergedCloud = nullptr; // the merged cloud
+		pcl::PointCloud<pcl::PointXYZ>::Ptr mergedCloud = nullptr; // the merged cloud
 		bool mergedCloudDownsampled = false; // prevent double downsampling
 		void allocCloudManagers();
 		void clean(); // remove clouds older than "maxAge"
 		size_t topicNameToIndex(std::string topicName);
 
-		bool align(pcl::PointCloud<pcl::PointXYZ>::Ptr merged, pcl::PointCloud<pcl::PointXYZ>::Ptr input, Eigen::Matrix<float, 4, 4> *transform);
+		bool appendToMerged(pcl::PointCloud<pcl::PointXYZ>::Ptr input);
+		void downsampleMergedCloud(); // TODO
 
 	
 	public:
 		PointCloudsManager(size_t n_sources, time_t max_age);
 		~PointCloudsManager();
 		size_t getNClouds();
-		void addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::string topicName);
+		void addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string topicName);
 		void setTransform(Eigen::Affine3d *transformEigen, std::string topicName);
 		PointCloudList *getClouds();
 
-		pcl::PointCloud<pcl::PointXYZ> *getMergedCloud(); // TODO
-		void downsampleCloud(); // TODO
+		pcl::PointCloud<pcl::PointXYZ>::Ptr getMergedCloud();
 };
 
 #endif

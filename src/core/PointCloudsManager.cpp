@@ -52,11 +52,11 @@ void PointCloudsManager::clean() {
 		std::cerr << "Error getting current timestamp: " << strerror(errno) << std::endl;
 		return;
 	}
+	// delete instances older than max_age
 	#pragma omp parallel for
 	for(size_t i = 0; i < this->n_sources; i++) {
 		if(this->cloudManagers[i] != nullptr) {
 			if(cur_timestamp - this->cloudManagers[i]->getTimestamp() > max_age) {
-				this->clouds->remove(this->cloudManagers[i]->getCloud()); // remove from the final list
 				delete this->cloudManagers[i];
 				this->cloudManagers[i] = nullptr;
 			}
@@ -73,22 +73,20 @@ size_t PointCloudsManager::topicNameToIndex(std::string topicName) {
 	return index;
 }
 
-bool PointCloudsManager::align(pcl::PointCloud<pcl::PointXYZ>::Ptr merged, pcl::PointCloud<pcl::PointXYZ>::Ptr input, Eigen::Matrix<float, 4, 4> *transform) {
+bool PointCloudsManager::appendToMerged(pcl::PointCloud<pcl::PointXYZ>::Ptr input) {
 	// align the pointclouds
 	pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
 	icp.setInputSource(input);
-	icp.setInputTarget(merged); // "input" will align to "merged"
-	icp.align(*merged); // combine the aligned pointclouds on the "merged" instance
-
-	*transform = icp.getFinalTransformation(); // get the transformation matrix
+	icp.setInputTarget(this->mergedCloud); // "input" will align to "merged"
+	icp.align(*this->mergedCloud); // combine the aligned pointclouds on the "merged" instance
 
 	if(!icp.hasConverged())
-		merged += input; // if alignment was not possible, just add the pointclouds
+		*mergedCloud += *input; // if alignment was not possible, just add the pointclouds
 
 	return icp.hasConverged(); // return true if alignment was possible
 }
 
-void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::string topicName) {
+void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string topicName) {
 		
 
 		size_t index = this->topicNameToIndex(topicName);
@@ -104,9 +102,6 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::st
 		// clean the old pointclouds
 		// doing this only after insertion avoids instance immediate destruction and recreation upon updating
 		this->clean();
-
-		// this point cloud is very recent, so it should be kept by now
-		this->clouds->insertOnTail(cloud);
 }
 
 void PointCloudsManager::setTransform(Eigen::Affine3d *transformEigen, std::string topicName) {
@@ -124,4 +119,31 @@ void PointCloudsManager::setTransform(Eigen::Affine3d *transformEigen, std::stri
 // this is the filtered raw list returned from the manager
 PointCloudList *PointCloudsManager::getClouds() {
 	return this->clouds;
+}
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudsManager::getMergedCloud() {
+
+	// clear the old merged cloud
+	if(this->mergedCloud != nullptr) {
+		this->mergedCloud->clear();
+	}
+
+	bool firstCloud = true;
+
+	for(size_t i = 0; i < this->n_sources; i++) {
+		if(this->cloudManagers[i] != nullptr) {
+			if(this->cloudManagers[i]->hasCloudReady()) {
+
+				// on the first pointcloud, the merged version is itself
+				if(firstCloud) {
+					*this->mergedCloud += *this->cloudManagers[i]->getCloud();
+					firstCloud = false;
+				} else {
+					this->appendToMerged(this->cloudManagers[i]->getCloud());
+				}
+			}
+		}
+	}
+
+	return this->mergedCloud;
 }
