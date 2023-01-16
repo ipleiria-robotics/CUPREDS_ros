@@ -55,3 +55,7 @@ void PCLRegistrator::setRobotFrame(std::string robotFrame) {
 void PCLRegistrator::setPublisher(ros::Publisher *point_cloud_pub) {
     this->point_cloud_pub = point_cloud_pub;
 }
+
+pcl::PointCloud<pcl::PointXYZ> PCLRegistrator::getPointCloud() {
+    return *this->manager->getMergedCloud();
+}

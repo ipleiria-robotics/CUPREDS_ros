@@ -33,6 +33,7 @@ class PCLRegistrator {
         void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName);
         void setRobotFrame(std::string robotFrame);
         void setPublisher(ros::Publisher *point_cloud_pub);
+        pcl::PointCloud<pcl::PointXYZ> getPointCloud();
 };
 
 #endif

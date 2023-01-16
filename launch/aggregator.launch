@@ -1,5 +1,14 @@
 <launch>
-    <arg name="n_pointclouds" value="2" />
-    <arg name="robot_base" value="base_link" />
-    <node name="pcl_aggregator" pkg="pcl_aggregator" type="pcl_aggregator_node" output="screen" />
+
+    <param name="n_pointclouds" value="5" type="int" />
+    <param name="robot_base" value="bobcat_base" type="str" />
+
+    <node name="pcl_aggregator" pkg="pcl_aggregator" type="pcl_aggregator_node" output="screen">
+
+        <remap from="front_lslidar_point_cloud" to="pointcloud0" />
+        <remap from="back_lslidar_point_cloud" to="pointcloud1" />
+        <remap from="Navtech/FilteredPointcloud" to="pointcloud2" />
+        <remap from="camera/depth/color/points" to="pointcloud3" />
+        <remap from="camera_back_center/depth/color/points" to="pointcloud4" />
+    </node>
 </launch>

@@ -9,9 +9,11 @@
 #include "sensor_msgs/CameraInfo.h"
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/PointCloud2.h"
+#include "pcl_conversions/pcl_conversions.h"
 #include "tf/transform_listener.h"
 #include "PCLRegistrator.h"
 
+#define SUB_POINTCLOUD_TOPIC "pointcloud"
 #define POINTCLOUD_TOPIC "merged_pointcloud"
 
 #define MAX_POINTCLOUD_AGE 2
@@ -50,10 +52,13 @@ int main(int argc, char **argv) {
     // initialize the publisher on the registrator
     registrator->setPublisher(&pcl_publisher);
 
+    std::string topicName;
     // initialize the subscribers
     #pragma omp parallel for
     for(int i = 0; i < n_pointclouds; i++) {
-        std::string topicName = POINTCLOUD_TOPIC + i;
+        topicName = "";
+        topicName.append(SUB_POINTCLOUD_TOPIC);
+        topicName.append(std::to_string(i));
         pcl_subscribers[i] = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName));
         ROS_INFO("Subscribing to %s", topicName.c_str());
     }
@@ -64,6 +69,14 @@ int main(int argc, char **argv) {
 
     while(ros::ok()) {
         ros::spinOnce();
+
+        sensor_msgs::PointCloud2 ros_cloud;
+        // convert the PCL pointcloud to the ROS PointCloud2 format
+        pcl::toROSMsg(registrator->getPointCloud(), ros_cloud);
+
+        // publish the PointCloud
+        pcl_publisher.publish(ros_cloud);
+
         r.sleep();
     }
 
