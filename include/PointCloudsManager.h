@@ -36,6 +36,7 @@ class PointCloudsManager {
 		size_t topicNameToIndex(std::string topicName);
 
 		bool appendToMerged(pcl::PointCloud<pcl::PointXYZ>::Ptr input);
+		void clearMergedCloud();
 		void downsampleMergedCloud(); // TODO
 
 	

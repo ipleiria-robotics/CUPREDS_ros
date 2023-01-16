@@ -121,12 +121,21 @@ PointCloudList *PointCloudsManager::getClouds() {
 	return this->clouds;
 }
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudsManager::getMergedCloud() {
-
-	// clear the old merged cloud
+void PointCloudsManager::clearMergedCloud() {
 	if(this->mergedCloud != nullptr) {
 		this->mergedCloud->clear();
 	}
+	this->mergedCloudDownsampled = false;
+}
+
+void PointCloudsManager::downsampleMergedCloud() {
+	// TODO
+}
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudsManager::getMergedCloud() {
+
+	// clear the old merged cloud
+	this->clearMergedCloud();
 
 	bool firstCloud = true;
 
@@ -144,6 +153,8 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudsManager::getMergedCloud() {
 			}
 		}
 	}
+
+	this->downsampleMergedCloud(); // TODO
 
 	return this->mergedCloud;
 }
