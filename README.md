@@ -4,6 +4,8 @@ This package is intended to provide functionality to aggregate pointclouds prove
 
 The PointCloud aggregator basically does the registration of the different sources, and manages the storage of the corresponding PointClouds.
 
+The registration is ICP-based, and the merged PointCloud is downsampled using voxel grid.
+
 The RGBD deprojector subscribes for both a color image and a depth aligned to color image. Note that the depth frame must really be aligned, because the color frame is used to add color to the points.
 
 The hardware tested during the development of this package was the RealSense D435i depth camera and 3 Livox Horizon LiDAR sensors merged with a Livox Hub.
