@@ -44,8 +44,6 @@ int main(int argc, char **argv) {
 
     PCLRegistrator *registrator = new PCLRegistrator(n_pointclouds, max_pointcloud_age);
 
-    // TODO: listen the transform between the pointclouds frame ids and the robot base
-
     // initialize the subscribers
     #pragma omp parallel for
     for(int i = 0; i < n_pointclouds; i++) {

@@ -36,6 +36,7 @@
   <depend>sensor_msgs</depend>
   <depend>pcl_conversions</depend>
   <depend>cv_bridge</depend>
+  <depend>tf_conversions</depend>
   <!--   Note that this is equivalent to the following: -->
   <!--   <build_depend>roscpp</build_depend> -->
   <!--   <exec_depend>roscpp</exec_depend> -->

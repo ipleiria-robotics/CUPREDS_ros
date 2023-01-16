@@ -56,16 +56,24 @@ void PointCloudsManager::clean() {
 	}
 }
 
+size_t PointCloudsManager::topicNameToIndex(std::string topicName) {
+	// the pointcloud topic names must be "pointcloud0", "pointcloud1", etc.
+	// so, we can use the number after "pointcloud" as index on the array
+	std::string cloudNumber = topicName.substr(10);
+	size_t index = atol(cloudNumber.c_str());
+
+	return index;
+}
+
 void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::string topicName) {
-		// the pointcloud topic names must be "pointcloud0", "pointcloud1", etc.
-		// so, we can use the number after "pointcloud" as index on the array
-		std::string cloudNumber = topicName.substr(10);
-		size_t index = atol(cloudNumber.c_str());
+		
+
+		size_t index = this->topicNameToIndex(topicName);
 
 		// set the pointcloud as the latest of this source
 		// check if it was ever defined
 		if(this->cloudManagers[index] == nullptr) {
-			this->cloudManagers[index] = new StreamManager(cloud);
+			this->cloudManagers[index] = new StreamManager();
 		} else {
 			this->cloudManagers[index]->addCloud(cloud);
 		}
@@ -76,6 +84,18 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::st
 
 		// this point cloud is very recent, so it should be kept by now
 		this->clouds->insertOnTail(cloud);
+}
+
+void PointCloudsManager::setTransform(Eigen::Affine3d *transformEigen, std::string topicName) {
+
+	size_t index = this->topicNameToIndex(topicName);
+
+	// check if it was ever defined
+	if(this->cloudManagers[index] == nullptr) {
+		this->cloudManagers[index] = new StreamManager();
+	} else {
+		this->cloudManagers[index]->setTransform(transformEigen);
+	}
 }
 
 // this is the filtered raw list returned from the manager

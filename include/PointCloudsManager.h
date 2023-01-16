@@ -11,17 +11,17 @@
 
 // this class manages the stored point clouds
 // keep an array of point clouds, the last one for each source
-// !!! POINT CLOUDS MUST BE FED HERE ALREADY TRANSFORMED
 class PointCloudsManager {
 
 	private:
 		size_t n_sources;
 		time_t max_age;
-		// this array of instances functions almost as a hashtable. details explained on "addCloud"
+		// the array of instances below functions almost as a hashtable. details explained on "addCloud"
 		StreamManager **cloudManagers = nullptr; // array of point cloud managers - fixed size = n_clouds
 		PointCloudList *clouds = nullptr; // list of the point clouds to consider
 		void allocCloudManagers();
 		void clean(); // remove clouds older than "maxAge"
+		size_t topicNameToIndex(std::string topicName);
 
 	
 	public:
@@ -29,6 +29,7 @@ class PointCloudsManager {
 		~PointCloudsManager();
 		size_t getNClouds();
 		void addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::string topicName);
+		void setTransform(Eigen::Affine3d *transformEigen, std::string topicName);
 		PointCloudList *getClouds();
 };
 

@@ -6,6 +6,8 @@
 #include "pcl_conversions/pcl_conversions.h"
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
+#include "tf/transform_listener.h"
+#include "tf_conversions/tf_eigen.h"
 #include "PointCloudsManager.h"
 
 class PCLRegistrator {
@@ -15,11 +17,13 @@ class PCLRegistrator {
         size_t n_sources;
         time_t max_pointcloud_age;
         void initializeManager();
+        std::string robotFrame = "base_link";
 
     public:
         PCLRegistrator(size_t n_sources, time_t max_age);
         ~PCLRegistrator();
         void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName);
+        void setRobotFrame(std::string robotFrame);
 };
 
 #endif

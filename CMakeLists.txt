@@ -82,7 +82,7 @@ find_package(catkin REQUIRED)
 ##     find_package(catkin REQUIRED COMPONENTS ...)
 ##   * uncomment the "generate_dynamic_reconfigure_options" section below
 ##     and list every .cfg file to be processed
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs pcl_conversions cv_bridge)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs pcl_conversions cv_bridge tf_conversions)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED)
 find_package(OpenMP REQUIRED)
