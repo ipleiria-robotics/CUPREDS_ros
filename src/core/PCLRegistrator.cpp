@@ -51,3 +51,7 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
 void PCLRegistrator::setRobotFrame(std::string robotFrame) {
     this->robotFrame = robotFrame;
 }
+
+void PCLRegistrator::setPublisher(ros::Publisher *point_cloud_pub) {
+    this->point_cloud_pub = point_cloud_pub;
+}

@@ -11,9 +11,8 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "tf/transform_listener.h"
 #include "PCLRegistrator.h"
-#include "common.h"
 
-#define POINTCLOUD_TOPIC "pointcloud"
+#define POINTCLOUD_TOPIC "merged_pointcloud"
 
 #define MAX_POINTCLOUD_AGE 2
 #define ROBOT_BASE "base_link"
@@ -44,7 +43,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    ros::Publisher pcl_publisher = nh.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, PCL_QUEUES_LEN);
+
     PCLRegistrator *registrator = new PCLRegistrator(n_pointclouds, max_pointcloud_age);
+
+    // initialize the publisher on the registrator
+    registrator->setPublisher(&pcl_publisher);
 
     // initialize the subscribers
     #pragma omp parallel for

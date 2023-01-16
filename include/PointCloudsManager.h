@@ -14,6 +14,8 @@
 #include <cerrno>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/registration/icp.h>
+#include <eigen3/Eigen/Dense>
 #include "PointCloudList.h"
 #include "StreamManager.h"
 
@@ -27,9 +29,13 @@ class PointCloudsManager {
 		// the array of instances below functions almost as a hashtable. details explained on "addCloud"
 		StreamManager **cloudManagers = nullptr; // array of point cloud managers - fixed size = n_clouds
 		PointCloudList *clouds = nullptr; // list of the point clouds to consider
+		pcl::PointCloud<pcl::PointXYZ> *mergedCloud = nullptr; // the merged cloud
+		bool mergedCloudDownsampled = false; // prevent double downsampling
 		void allocCloudManagers();
 		void clean(); // remove clouds older than "maxAge"
 		size_t topicNameToIndex(std::string topicName);
+
+		bool align(pcl::PointCloud<pcl::PointXYZ>::Ptr merged, pcl::PointCloud<pcl::PointXYZ>::Ptr input, Eigen::Matrix<float, 4, 4> *transform);
 
 	
 	public:
@@ -39,6 +45,9 @@ class PointCloudsManager {
 		void addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::string topicName);
 		void setTransform(Eigen::Affine3d *transformEigen, std::string topicName);
 		PointCloudList *getClouds();
+
+		pcl::PointCloud<pcl::PointXYZ> *getMergedCloud(); // TODO
+		void downsampleCloud(); // TODO
 };
 
 #endif

@@ -73,6 +73,18 @@ size_t PointCloudsManager::topicNameToIndex(std::string topicName) {
 	return index;
 }
 
+bool PointCloudsManager::align(pcl::PointCloud<pcl::PointXYZ>::Ptr merged, pcl::PointCloud<pcl::PointXYZ>::Ptr input, Eigen::Matrix<float, 4, 4> *transform) {
+	// align the pointclouds
+	pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+	icp.setInputSource(merged);
+	icp.setInputTarget(input); // "input" will align to the "merged"
+	icp.align(*merged); // combine the aligned pointclouds on the "merged" instance
+
+	*transform = icp.getFinalTransformation(); // get the transformation matrix
+
+	return icp.hasConverged(); // return true if alignment was possible
+}
+
 void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::string topicName) {
 		
 
