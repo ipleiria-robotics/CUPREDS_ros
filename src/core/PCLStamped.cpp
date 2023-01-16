@@ -5,7 +5,7 @@ PCLStamped::PCLStamped(pcl::PointCloud<pcl::PointXYZ> *cloud) {
 }
 
 PCLStamped::~PCLStamped() {
-		delete this->cloud;
+	delete this->cloud;
 }
 
 void PCLStamped::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud) {
@@ -20,9 +20,9 @@ void PCLStamped::addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud) {
 }
 
 pcl::PointCloud<pcl::PointXYZ> *PCLStamped::getCloud() {
-		return this->cloud;
+	return this->cloud;
 }
 
 time_t PCLStamped::getTimestamp() {
-		return this->timestamp;
+	return this->timestamp;
 }

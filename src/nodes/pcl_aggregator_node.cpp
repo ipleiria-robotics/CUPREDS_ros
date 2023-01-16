@@ -9,16 +9,14 @@
 #include "sensor_msgs/CameraInfo.h"
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/PointCloud2.h"
+#include "PCLRegistrator.h"
 #include "common.h"
 
-#define POINTCLOUD_TOPIC "/pointcloud"
+#define POINTCLOUD_TOPIC "pointcloud"
 
-#define PCL_PUBLISH_RATE 20 // pointcloud publish rate in Hz
+#define MAX_POINTCLOUD_AGE 2
 
 #define PCL_QUEUES_LEN 1000
-
-void pclCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
-}
 
 int main(int argc, char **argv) {
 
@@ -28,10 +26,10 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle nh;
 
-    int n_pointclouds, pcl_publish_rate;
+    int n_pointclouds, max_pointcloud_age;
 
-    nh.param<int>("n_pointclouds", n_pointclouds, 2); // TODO: allow dynamic number of pointclouds
-    nh.param<int>("publish_rate", pcl_publish_rate, PCL_PUBLISH_RATE);
+    nh.param<int>("n_pointclouds", n_pointclouds, 1);
+    nh.param<int>("max_pointcloud_age", max_pointcloud_age, MAX_POINTCLOUD_AGE);
 
     // allocate the subscribers
     ros::Subscriber *pcl_subscribers;
@@ -39,9 +37,15 @@ int main(int argc, char **argv) {
         ROS_ERROR("Error allocating memory for pointcloud subscribers: %s", strerror(errno));
         return 1;
     }
+
+    PCLRegistrator *registrator = new PCLRegistrator(n_pointclouds, max_pointcloud_age);
+
     // initialize the subscribers
+    #pragma omp parallel for
     for(int i = 0; i < n_pointclouds; i++) {
-        pcl_subscribers[i] = nh.subscribe(POINTCLOUD_TOPIC, PCL_QUEUES_LEN, pclCallback);
+        std::string topicName = POINTCLOUD_TOPIC + i;
+        pcl_subscribers[i] = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName));
+        ROS_INFO("Subscribing to %s", topicName.c_str());
     }
 
     ROS_INFO("PointCloud aggregator node started.");

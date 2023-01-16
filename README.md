@@ -2,6 +2,8 @@
 
 This package is intended to provide functionality to aggregate pointclouds provenient from different sources. For instance, a deprojected depth camera and LiDAR sensors. Currently, the depth camera deprojection is done solely with CPU processing, but a version with CUDA computing is under development.
 
+The PointCloud aggregator basically does the registration of the different sources, and manages the storage of the corresponding PointClouds.
+
 The RGBD deprojector subscribes for both a color image and a depth aligned to color image. Note that the depth frame must really be aligned, because the color frame is used to add color to the points.
 
 The hardware tested during the development of this package was the RealSense D435i depth camera and 3 Livox Horizon LiDAR sensors merged with a Livox Hub.
@@ -24,11 +26,11 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 ### pcl_aggregator_node
 #### Parameters
 - ```n_pointclouds```: Number of PointClouds to be subscribed. Default: 2.
-- ```publish_rate```: Rate at which to publish the merged pointcloud specified in Hz. Best effort, this is the maximum. Default: 20.
+- ```max_pointcloud_age```: The PointClouds considered to register are the ones newer than the age specified on this parameter in seconds. Default: 2.
 #### Subscribed topics
 - ```pointcloudn```: PointCloud topics, where $0 \leq n < n_{pointclouds}$. Example: ```pointcloud0```. Type: sensor_msgs/PointCloud2.
 #### Published topics
-- ```merged_pointcloud```: Merged PointCloud data. Publish at the rate specified on the ```publish_rate``` parameter. Type: sensor_msgs/PointCloud2.
+- ```merged_pointcloud```: Merged PointCloud data. Type: sensor_msgs/PointCloud2.
 
 ### rgbd_deprojector_node
 #### Subscribed topics

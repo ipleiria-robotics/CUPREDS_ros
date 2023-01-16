@@ -15,7 +15,7 @@
 class PointCloudsManager {
 
 	private:
-		size_t n_clouds;
+		size_t n_sources;
 		time_t max_age;
 		// this array of instances functions almost as a hashtable. details explained on "addCloud"
 		PCLStamped **cloudManagers = nullptr; // array of point cloud managers - fixed size = n_clouds
@@ -25,7 +25,7 @@ class PointCloudsManager {
 
 	
 	public:
-		PointCloudsManager(size_t n_clouds, time_t max_age);
+		PointCloudsManager(size_t n_sources, time_t max_age);
 		~PointCloudsManager();
 		size_t getNClouds();
 		void addCloud(pcl::PointCloud<pcl::PointXYZ> *cloud, std::string topicName);

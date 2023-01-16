@@ -174,7 +174,7 @@ add_executable(
 # )
 target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(PointCloudList ${PCL_LIBRARIES})
-target_link_libraries(PointCloudsManager ${PCL_LIBRARIES} ${OPENMP_LIBRARIES} PointCloudList)
+target_link_libraries(PointCloudsManager ${PCL_LIBRARIES} ${OPENMP_LIBRARIES} PointCloudList PCLStamped)
 target_link_libraries(PCLRegistrator ${catkin_LIBRARIES} PointCloudsManager)
 target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} PCLRegistrator)
 target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} RGBDDeprojector)

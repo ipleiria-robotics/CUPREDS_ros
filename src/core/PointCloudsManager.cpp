@@ -1,7 +1,7 @@
 #include "PointCloudsManager.h"
 
-PointCloudsManager::PointCloudsManager(size_t n_clouds, time_t max_age) {
-		this->n_clouds = n_clouds;
+PointCloudsManager::PointCloudsManager(size_t n_sources, time_t max_age) {
+		this->n_sources = n_sources;
 		// allocate the array
 		this->allocCloudManagers();
 
@@ -11,7 +11,7 @@ PointCloudsManager::PointCloudsManager(size_t n_clouds, time_t max_age) {
 PointCloudsManager::~PointCloudsManager() {
 	// delete each of the instances first
 	#pragma omp parallel for
-	for(size_t i = 0; i < this->n_clouds; i++) {
+	for(size_t i = 0; i < this->n_sources; i++) {
 		delete this->cloudManagers[i];
 	}
 	// free the array
@@ -22,17 +22,17 @@ PointCloudsManager::~PointCloudsManager() {
 }
 
 size_t PointCloudsManager::getNClouds() {
-	return this->n_clouds;
+	return this->n_sources;
 }
 
 void PointCloudsManager::allocCloudManagers() {
-	if((this->cloudManagers = (PCLStamped**) malloc(this->n_clouds * sizeof(PCLStamped*))) == NULL) {
+	if((this->cloudManagers = (PCLStamped**) malloc(this->n_sources * sizeof(PCLStamped*))) == NULL) {
 		std::cerr << "Error allocating point cloud managers: " << strerror(errno) << std::endl;
 		return;
 	}
 	// initialize all instances to nullptr
 	# pragma omp parallel for
-	for(size_t i = 0; i < this->n_clouds; i++) {
+	for(size_t i = 0; i < this->n_sources; i++) {
 		this->cloudManagers[i] = nullptr;
 	}
 }
@@ -45,7 +45,7 @@ void PointCloudsManager::clean() {
 		return;
 	}
 	#pragma omp parallel for
-	for(size_t i = 0; i < this->n_clouds; i++) {
+	for(size_t i = 0; i < this->n_sources; i++) {
 		if(this->cloudManagers[i] != nullptr) {
 			if(cur_timestamp - this->cloudManagers[i]->getTimestamp() > max_age) {
 				this->clouds->remove(this->cloudManagers[i]->getCloud()); // remove from the final list
