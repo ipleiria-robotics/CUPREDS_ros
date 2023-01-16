@@ -16,6 +16,8 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 - PCL
 - Eigen 3
 - CUDA Toolkit (+ CUDA-enabled GPU)
+- OpenMP
+- OpenCV
 
 ## Build
 - Install the dependencies.
