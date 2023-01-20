@@ -14,7 +14,6 @@ StreamManager::StreamManager() {
 }
 
 StreamManager::~StreamManager() {
-	delete &(this->cloud);
 	delete this->transform;
 }
 
@@ -30,17 +29,13 @@ void StreamManager::computeTransform() {
 
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
 	this->transformComputed = false;
-	// if a cloud was already set, delete the instance to avoid memory leaks
-	if(this->cloud != nullptr) {
-		delete &(this->cloud);
-	}
 	this->cloud = cloud;
 	if((this->timestamp = time(NULL)) < 0) {
-		std::cerr << "Error getting current timestamp: " << strerror(errno) << std::endl;
+		ROS_WARN("Error getting current timestamp: %s", strerror(errno));
 		return;
 	}
 	if(this->transform == nullptr) {
-		std::cerr << "Transform not set, cloud will not be transformed";
+		ROS_WARN("Transform not set, cloud will not be transformed");
 		return;
 	}
 	this->computeTransform();

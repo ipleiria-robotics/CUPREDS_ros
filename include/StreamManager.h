@@ -9,6 +9,7 @@
 #ifndef STREAM_MANAGER_H
 #define STREAM_MANAGER_H
 
+#include "ros/ros.h"
 #include <iostream>
 #include <cstring>
 #include <cerrno>

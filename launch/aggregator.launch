@@ -2,13 +2,14 @@
 
     <param name="n_pointclouds" value="5" type="int" />
     <param name="robot_base" value="bobcat_base" type="str" />
+    <param name="max_pointcloud_age" value="10" type="int" />
 
     <node name="pcl_aggregator" pkg="pcl_aggregator" type="pcl_aggregator_node" output="screen">
 
-        <remap from="front_lslidar_point_cloud" to="pointcloud0" />
-        <remap from="back_lslidar_point_cloud" to="pointcloud1" />
-        <remap from="Navtech/FilteredPointcloud" to="pointcloud2" />
-        <remap from="camera/depth/color/points" to="pointcloud3" />
-        <remap from="camera_back_center/depth/color/points" to="pointcloud4" />
+        <remap to="/front_lslidar_point_cloud" from="pointcloud0" />
+        <remap to="/back_lslidar_point_cloud" from="pointcloud1" />
+        <remap to="/Navtech/FilteredPointcloud" from="pointcloud2" />
+        <remap to="/camera/depth/color/points" from="pointcloud3" />
+        <remap to="/camera_back_center/depth/color/points" from="pointcloud4" />
     </node>
 </launch>

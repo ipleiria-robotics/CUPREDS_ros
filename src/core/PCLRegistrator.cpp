@@ -27,24 +27,33 @@ void PCLRegistrator::initializeManager() {
 // called when any new pointcloud is received
 void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
 
+    ROS_INFO("New pointcloud from %s", topicName.c_str());
+
     // convert from the ROS to the PCL format
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::fromROSMsg(*msg, *cloud);
 
+    // TODO: rewrite this to use tf2
+    tf2_ros::TransformListener listener(*this->tfBuffer);
+
     // get the transform from the robot base to the pointcloud frame
-    tf::TransformListener transfomListener;
-    tf::StampedTransform transform;
-    try {
-        transfomListener.lookupTransform(this->robotFrame, msg->header.frame_id, ros::Time(0), transform);
-    } catch (tf::TransformException ex) {
-        ROS_ERROR("Error looking up the transform: %s", ex.what());
+    if(this->tfBuffer != nullptr) {
+
+        geometry_msgs::TransformStamped transform;
+
+        try {
+            ROS_INFO("frame id: %s", msg->header.frame_id.c_str());
+            transform = this->tfBuffer->lookupTransform(this->robotFrame, msg->header.frame_id, ros::Time(0));
+
+            Eigen::Affine3d *transformEigen;
+            *transformEigen = tf2::transformToEigen(transform);
+            this->manager->setTransform(transformEigen, topicName);
+        } catch (tf2::TransformException ex) {
+            ROS_ERROR("Error looking up the transform: %s", ex.what());
+        }
     }
 
-    Eigen::Affine3d *transformEigen;
-    tf::transformTFToEigen(transform, *transformEigen);
-
     // feed the manager with the new pointcloud
-    this->manager->setTransform(transformEigen, topicName);
     this->manager->addCloud(cloud, topicName);
 }
 
@@ -54,6 +63,10 @@ void PCLRegistrator::setRobotFrame(std::string robotFrame) {
 
 void PCLRegistrator::setPublisher(ros::Publisher *point_cloud_pub) {
     this->point_cloud_pub = point_cloud_pub;
+}
+
+void PCLRegistrator::setTfBuffer(tf2_ros::Buffer *tfBuffer) {
+    this->tfBuffer = tfBuffer;
 }
 
 pcl::PointCloud<pcl::PointXYZ> PCLRegistrator::getPointCloud() {

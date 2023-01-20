@@ -40,7 +40,7 @@ class PointCloudsManager {
 
 		bool appendToMerged(pcl::PointCloud<pcl::PointXYZ>::Ptr input);
 		void clearMergedCloud();
-		void downsampleMergedCloud(); // TODO
+		void downsampleMergedCloud();
 
 	
 	public:

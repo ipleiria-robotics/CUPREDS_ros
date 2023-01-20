@@ -22,6 +22,10 @@
 
 #define PCL_QUEUES_LEN 1000
 
+void testCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
+    ROS_INFO("new msg");
+}
+
 int main(int argc, char **argv) {
 
     ROS_INFO("PointCloud aggregator node starting...");
@@ -39,11 +43,7 @@ int main(int argc, char **argv) {
     nh.param<std::string>("robot_base", robot_base, ROBOT_BASE);
 
     // allocate the subscribers
-    ros::Subscriber *pcl_subscribers;
-    if((pcl_subscribers = (ros::Subscriber *) malloc(n_pointclouds * sizeof(ros::Subscriber))) == NULL) {
-        ROS_ERROR("Error allocating memory for pointcloud subscribers: %s", strerror(errno));
-        return 1;
-    }
+    std::vector<ros::Subscriber> pcl_subscribers;
 
     ros::Publisher pcl_publisher = nh.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, PCL_QUEUES_LEN);
 
@@ -52,14 +52,18 @@ int main(int argc, char **argv) {
     // initialize the publisher on the registrator
     registrator->setPublisher(&pcl_publisher);
 
-    std::string topicName;
+    // set the robot base frame
+    registrator->setRobotFrame(robot_base);
+
     // initialize the subscribers
     #pragma omp parallel for
     for(int i = 0; i < n_pointclouds; i++) {
+        std::string topicName;
         topicName = "";
         topicName.append(SUB_POINTCLOUD_TOPIC);
         topicName.append(std::to_string(i));
-        pcl_subscribers[i] = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName));
+        ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName));
+        pcl_subscribers.push_back(sub);
         ROS_INFO("Subscribing to %s", topicName.c_str());
     }
 
@@ -67,18 +71,22 @@ int main(int argc, char **argv) {
 
     ros::Rate r = ros::Rate(publish_rate);
 
+    sensor_msgs::PointCloud2 ros_cloud;
     while(ros::ok()) {
+
         ros::spinOnce();
 
-        sensor_msgs::PointCloud2 ros_cloud;
         // convert the PCL pointcloud to the ROS PointCloud2 format
-        pcl::toROSMsg(registrator->getPointCloud(), ros_cloud);
+        // pcl::toROSMsg(registrator->getPointCloud(), ros_cloud);
 
         // publish the PointCloud
-        pcl_publisher.publish(ros_cloud);
+        // pcl_publisher.publish(ros_cloud);
 
         r.sleep();
     }
+
+    // delete the registrator instance
+    delete registrator;
 
     return 0;
 }
