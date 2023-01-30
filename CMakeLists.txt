@@ -93,6 +93,8 @@ if (OPENMP_FOUND)
 endif()
 find_package(OpenCV REQUIRED)
 
+set(CMAKE_BUILD_TYPE "Debug")
+
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
 #   cfg/DynReconf1.cfg

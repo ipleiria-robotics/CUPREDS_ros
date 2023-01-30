@@ -24,7 +24,8 @@ class StreamManager {
     private:
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
         time_t timestamp = -1; // timestamp of the last update
-        Eigen::Affine3d *transform = nullptr;
+        Eigen::Affine3d transform;
+        bool transformSet = false;
         bool transformComputed = false; // this is to prevent transforming the cloud multiple times
         void computeTransform();
 
@@ -35,7 +36,7 @@ class StreamManager {
 		void addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr getCloud();
 		time_t getTimestamp();
-        void setTransform(Eigen::Affine3d *transform);
+        void setTransform(Eigen::Affine3d transform);
 
         bool hasCloudReady();
 

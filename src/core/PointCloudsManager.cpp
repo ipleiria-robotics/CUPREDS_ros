@@ -10,8 +10,12 @@
 
 PointCloudsManager::PointCloudsManager(size_t n_sources, time_t max_age) {
 		this->n_sources = n_sources;
+
 		// allocate the array
 		this->allocCloudManagers();
+
+        // initialize empty merged cloud
+        this->mergedCloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
 
 		this->max_age = max_age;
 }
@@ -24,9 +28,6 @@ PointCloudsManager::~PointCloudsManager() {
 	}
 	// free the array
 	free(this->cloudManagers);
-
-	// free the list
-	delete this->clouds;
 }
 
 size_t PointCloudsManager::getNClouds() {
@@ -45,6 +46,7 @@ void PointCloudsManager::allocCloudManagers() {
 	}
 }
 
+// remove pointclouds older than the defined max age
 void PointCloudsManager::clean() {
 	// get the current timestamp to calculate pointclouds age
 	time_t cur_timestamp;
@@ -74,6 +76,7 @@ size_t PointCloudsManager::topicNameToIndex(std::string topicName) {
 }
 
 bool PointCloudsManager::appendToMerged(pcl::PointCloud<pcl::PointXYZ>::Ptr input) {
+	/*
 	// align the pointclouds
 	pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
 	icp.setInputSource(input);
@@ -84,27 +87,31 @@ bool PointCloudsManager::appendToMerged(pcl::PointCloud<pcl::PointXYZ>::Ptr inpu
 		*mergedCloud += *input; // if alignment was not possible, just add the pointclouds
 
 	return icp.hasConverged(); // return true if alignment was possible
+	*/
+	*this->mergedCloud += *input;
+
+	return false;
 }
 
 void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string topicName) {
 		
 
-		size_t index = this->topicNameToIndex(topicName);
+	size_t index = this->topicNameToIndex(topicName);
 
-		// set the pointcloud as the latest of this source
-		// check if it was ever defined
-		if(this->cloudManagers[index] == nullptr) {
-			this->cloudManagers[index] = new StreamManager();
-		} else {
-			this->cloudManagers[index]->addCloud(cloud);
-		}
+	// set the pointcloud as the latest of this source
+	// check if it was ever defined
+	if(this->cloudManagers[index] == nullptr) {
+		this->cloudManagers[index] = new StreamManager();
+	} else {
+		this->cloudManagers[index]->addCloud(cloud);
+	}
 
-		// clean the old pointclouds
-		// doing this only after insertion avoids instance immediate destruction and recreation upon updating
-		this->clean();
+	// clean the old pointclouds (defined by max_age)
+	// doing this only after insertion avoids instance immediate destruction and recreation upon updating
+	this->clean();
 }
 
-void PointCloudsManager::setTransform(Eigen::Affine3d *transformEigen, std::string topicName) {
+void PointCloudsManager::setTransform(Eigen::Affine3d transformEigen, std::string topicName) {
 
 	size_t index = this->topicNameToIndex(topicName);
 
@@ -114,11 +121,6 @@ void PointCloudsManager::setTransform(Eigen::Affine3d *transformEigen, std::stri
 	} else {
 		this->cloudManagers[index]->setTransform(transformEigen);
 	}
-}
-
-// this is the filtered raw list returned from the manager
-PointCloudList *PointCloudsManager::getClouds() {
-	return this->clouds;
 }
 
 void PointCloudsManager::clearMergedCloud() {
@@ -137,7 +139,7 @@ void PointCloudsManager::downsampleMergedCloud() {
 	downsampler.filter(*this->mergedCloud); // replace with the downsampled cloud
 }
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudsManager::getMergedCloud() {
+pcl::PointCloud<pcl::PointXYZ> PointCloudsManager::getMergedCloud() {
 
 	// clear the old merged cloud
 	this->clearMergedCloud();
@@ -161,5 +163,5 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudsManager::getMergedCloud() {
 
 	this->downsampleMergedCloud();
 
-	return this->mergedCloud;
+	return *this->mergedCloud;
 }

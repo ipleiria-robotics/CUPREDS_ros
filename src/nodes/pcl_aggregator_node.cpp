@@ -22,10 +22,6 @@
 
 #define PCL_QUEUES_LEN 1000
 
-void testCallback(const sensor_msgs::PointCloud2::ConstPtr& msg) {
-    ROS_INFO("new msg");
-}
-
 int main(int argc, char **argv) {
 
     ROS_INFO("PointCloud aggregator node starting...");
@@ -77,11 +73,12 @@ int main(int argc, char **argv) {
         ros::spinOnce();
 
         // convert the PCL pointcloud to the ROS PointCloud2 format
-        // pcl::toROSMsg(registrator->getPointCloud(), ros_cloud);
+        pcl::toROSMsg(registrator->getPointCloud(), ros_cloud);
+        ros_cloud.header.frame_id = registrator->getRobotFrame();
 
         // publish the PointCloud
-        // pcl_publisher.publish(ros_cloud);
-
+        pcl_publisher.publish(ros_cloud);
+ 
         r.sleep();
     }
 

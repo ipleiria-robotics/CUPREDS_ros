@@ -14,16 +14,16 @@ StreamManager::StreamManager() {
 }
 
 StreamManager::~StreamManager() {
-	delete this->transform;
+
 }
 
 void StreamManager::computeTransform() {
 	// transform already computed, transform not set or no cloud
-	if(this->transformComputed || this->transform == nullptr || this->cloud == nullptr) {
+	if(this->transformComputed || !this->transformSet || this->cloud == nullptr) {
 		return;
 	}
 	// do the transform
-	pcl::transformPointCloud(*this->cloud, *this->cloud, *this->transform);
+	pcl::transformPointCloud(*this->cloud, *this->cloud, this->transform);
 	this->transformComputed = true; // set the flag to mark stream as ready
 }
 
@@ -34,7 +34,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
 		ROS_WARN("Error getting current timestamp: %s", strerror(errno));
 		return;
 	}
-	if(this->transform == nullptr) {
+	if(!this->transformSet) {
 		ROS_WARN("Transform not set, cloud will not be transformed");
 		return;
 	}
@@ -49,17 +49,13 @@ time_t StreamManager::getTimestamp() {
 	return this->timestamp;
 }
 
-void StreamManager::setTransform(Eigen::Affine3d *transform) {
+void StreamManager::setTransform(Eigen::Affine3d transform) {
 	// mark the transform as not computed
 	this->transformComputed = false;
 
-	// delete existing transform
-	if(this->transform != nullptr) {
-		delete this->transform;
-	}
-
 	// set the new transform
-	this->transform = transform;
+    this->transform = transform;
+    this->transformSet = true;
 	this->computeTransform();
 }
 

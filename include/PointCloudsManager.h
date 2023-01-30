@@ -16,11 +16,12 @@
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/visualization/cloud_viewer.h>
 #include <eigen3/Eigen/Dense>
 #include "PointCloudList.h"
 #include "StreamManager.h"
 
-#define FILTER_VOXEL_SIZE 0.01f // 1cm voxels
+#define FILTER_VOXEL_SIZE 0.1f
 
 // this class manages the stored point clouds
 // keep an array of point clouds, the last one for each source
@@ -31,7 +32,6 @@ class PointCloudsManager {
 		time_t max_age;
 		// the array of instances below functions almost as a hashtable. details explained on "addCloud"
 		StreamManager **cloudManagers = nullptr; // array of point cloud managers - fixed size = n_clouds
-		PointCloudList *clouds = nullptr; // list of the point clouds to consider
 		pcl::PointCloud<pcl::PointXYZ>::Ptr mergedCloud = nullptr; // the merged cloud
 		bool mergedCloudDownsampled = false; // prevent double downsampling
 		void allocCloudManagers();
@@ -48,10 +48,9 @@ class PointCloudsManager {
 		~PointCloudsManager();
 		size_t getNClouds();
 		void addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string topicName);
-		void setTransform(Eigen::Affine3d *transformEigen, std::string topicName);
-		PointCloudList *getClouds();
+		void setTransform(Eigen::Affine3d transformEigen, std::string topicName);
 
-		pcl::PointCloud<pcl::PointXYZ>::Ptr getMergedCloud();
+		pcl::PointCloud<pcl::PointXYZ> getMergedCloud();
 };
 
 #endif
