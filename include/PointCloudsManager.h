@@ -20,6 +20,8 @@
 #include <eigen3/Eigen/Dense>
 #include "PointCloudList.h"
 #include "StreamManager.h"
+#include <vector>
+#include <memory>
 
 #define FILTER_VOXEL_SIZE 0.1f
 
@@ -31,7 +33,7 @@ class PointCloudsManager {
 		size_t n_sources;
 		time_t max_age;
 		// the array of instances below functions almost as a hashtable. details explained on "addCloud"
-		StreamManager **cloudManagers = nullptr; // array of point cloud managers - fixed size = n_clouds
+		std::vector<std::shared_ptr<StreamManager>> cloudManagers; // array of point cloud managers - fixed size = n_sources
 		pcl::PointCloud<pcl::PointXYZ>::Ptr mergedCloud = nullptr; // the merged cloud
 		bool mergedCloudDownsampled = false; // prevent double downsampling
 		void allocCloudManagers();

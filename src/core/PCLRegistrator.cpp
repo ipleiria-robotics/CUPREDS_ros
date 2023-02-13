@@ -12,20 +12,18 @@ PCLRegistrator::PCLRegistrator(size_t n_sources, time_t max_pointcloud_age) {
     this->max_pointcloud_age = max_pointcloud_age;
 
     // initialize the tf listener and buffer
-    this->tfListener = new tf2_ros::TransformListener(this->tfBuffer, true);
+    this->tfListener = std::make_shared<tf2_ros::TransformListener>(this->tfBuffer, true);
 
     // use this to initialize the sources manager
     this->initializeManager();
 }
 
 PCLRegistrator::~PCLRegistrator() {
-    // delete the sources manager instance to free all its internal buffers, etc
-    delete manager;
 }
 
 // initialize the sources manager with the number of sources and configured max pointcloud age
 void PCLRegistrator::initializeManager() {
-    this->manager = new PointCloudsManager(n_sources, max_pointcloud_age);
+    this->manager = std::make_shared<PointCloudsManager>(n_sources, max_pointcloud_age);
 }
 
 // called when any new pointcloud is received
@@ -65,7 +63,7 @@ void PCLRegistrator::setRobotFrame(std::string robotFrame) {
     this->robotFrame = robotFrame;
 }
 
-void PCLRegistrator::setPublisher(ros::Publisher *point_cloud_pub) {
+void PCLRegistrator::setPublisher(std::shared_ptr<ros::Publisher> point_cloud_pub) {
     this->point_cloud_pub = point_cloud_pub;
 }
 

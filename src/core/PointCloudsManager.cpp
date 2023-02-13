@@ -24,10 +24,8 @@ PointCloudsManager::~PointCloudsManager() {
 	// delete each of the instances first
 	#pragma omp parallel for
 	for(size_t i = 0; i < this->n_sources; i++) {
-		delete this->cloudManagers[i];
+		this->cloudManagers[i];
 	}
-	// free the array
-	free(this->cloudManagers);
 }
 
 size_t PointCloudsManager::getNClouds() {
@@ -35,15 +33,10 @@ size_t PointCloudsManager::getNClouds() {
 }
 
 void PointCloudsManager::allocCloudManagers() {
-	if((this->cloudManagers = (StreamManager**) malloc(this->n_sources * sizeof(StreamManager*))) == NULL) {
-		std::cerr << "Error allocating point cloud managers: " << strerror(errno) << std::endl;
-		return;
-	}
 	// initialize all instances to nullptr
 	# pragma omp parallel for
-	for(size_t i = 0; i < this->n_sources; i++) {
-		this->cloudManagers[i] = nullptr;
-	}
+	for(size_t i = 0; i < this->n_sources; i++)
+		this->cloudManagers.push_back(nullptr);
 }
 
 // remove pointclouds older than the defined max age
@@ -58,10 +51,8 @@ void PointCloudsManager::clean() {
 	#pragma omp parallel for
 	for(size_t i = 0; i < this->n_sources; i++) {
 		if(this->cloudManagers[i] != nullptr) {
-			if(cur_timestamp - this->cloudManagers[i]->getTimestamp() > max_age) {
-				delete this->cloudManagers[i];
+			if(cur_timestamp - this->cloudManagers[i]->getTimestamp() > max_age)
 				this->cloudManagers[i] = nullptr;
-			}
 		}
 	}
 }
@@ -101,7 +92,7 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std
 	// set the pointcloud as the latest of this source
 	// check if it was ever defined
 	if(this->cloudManagers[index] == nullptr) {
-		this->cloudManagers[index] = new StreamManager();
+		this->cloudManagers[index] = std::make_shared<StreamManager>();
 	} else {
 		this->cloudManagers[index]->addCloud(cloud);
 	}
@@ -117,7 +108,7 @@ void PointCloudsManager::setTransform(Eigen::Affine3d transformEigen, std::strin
 
 	// check if it was ever defined
 	if(this->cloudManagers[index] == nullptr) {
-		this->cloudManagers[index] = new StreamManager();
+		this->cloudManagers[index] = std::make_shared<StreamManager>();
 	} else {
 		this->cloudManagers[index]->setTransform(transformEigen);
 	}

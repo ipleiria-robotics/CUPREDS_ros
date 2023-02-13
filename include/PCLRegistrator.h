@@ -16,17 +16,18 @@
 #include "tf2_ros/transform_listener.h"
 #include "tf2_eigen/tf2_eigen.h"
 #include "PointCloudsManager.h"
+#include <memory>
 
 class PCLRegistrator {
 
     private:
-        PointCloudsManager *manager = nullptr;
+        std::shared_ptr<PointCloudsManager> manager = nullptr;
         size_t n_sources;
         time_t max_pointcloud_age;
         std::string robotFrame = "base_link";
-        ros::Publisher *point_cloud_pub = nullptr;
+		std::shared_ptr<ros::Publisher> point_cloud_pub = nullptr;
         tf2_ros::Buffer tfBuffer;
-        tf2_ros::TransformListener *tfListener;
+		std::shared_ptr<tf2_ros::TransformListener> tfListener = nullptr;
         void initializeManager();
 
     public:
@@ -35,7 +36,7 @@ class PCLRegistrator {
         void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName);
         std::string getRobotFrame();
         void setRobotFrame(std::string robotFrame);
-        void setPublisher(ros::Publisher *point_cloud_pub);
+        void setPublisher(std::shared_ptr<ros::Publisher> point_cloud_pub);
         pcl::PointCloud<pcl::PointXYZ> getPointCloud();
 };
 

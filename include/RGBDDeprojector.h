@@ -22,6 +22,7 @@
 #include <cstring>
 #include <cerrno>
 #include <sys/time.h>
+#include <memory>
 
 class RGBDDeprojector {
 
@@ -29,8 +30,9 @@ class RGBDDeprojector {
         Eigen::Matrix<double, 3, 3> K;
         std::string camera_frame_id;
         pcl::PointCloud<pcl::PointXYZRGB> cloud;
-        ros::Publisher *point_cloud_pub = nullptr;
-        cv::Mat *last_color_image = nullptr;
+        std::shared_ptr<ros::Publisher> point_cloud_pub = nullptr;
+        cv::Mat last_color_image;
+        bool colorImageSet = false;
 
     public:
         RGBDDeprojector();
@@ -40,7 +42,7 @@ class RGBDDeprojector {
         void setK(Eigen::Matrix3d K);
 
         ros::Publisher getPointCloudPublisher();
-        void setPointCloudPublisher(ros::Publisher *point_cloud_pub);
+        void setPointCloudPublisher(std::shared_ptr<ros::Publisher> point_cloud_pub);
 
         void depthInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
         void depthImageCallback(const sensor_msgs::Image::ConstPtr& msg);

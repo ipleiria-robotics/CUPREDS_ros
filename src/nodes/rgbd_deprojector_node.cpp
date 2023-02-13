@@ -51,8 +51,9 @@ int main(int argc, char **argv) {
     ros::Subscriber color_image_sub = nh.subscribe(COLOR_IMAGE_TOPIC, IMAGE_QUEUES_LEN, &RGBDDeprojector::colorImageCallback, rgbd_deprojector);
     ROS_INFO("Subscribing color camera image");
 
-    ros::Publisher pointcloud_pub = nh.advertise<sensor_msgs::PointCloud2>("pointcloud", PCL_QUEUES_LEN);
-    rgbd_deprojector->setPointCloudPublisher(&pointcloud_pub);
+    ros::Publisher pub = nh.advertise<sensor_msgs::PointCloud2>("pointcloud", PCL_QUEUES_LEN);
+    std::shared_ptr<ros::Publisher> pointcloud_pub(&pub);
+    rgbd_deprojector->setPointCloudPublisher(pointcloud_pub);
     
     ros::spin();
 

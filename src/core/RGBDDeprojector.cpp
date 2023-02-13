@@ -9,6 +9,7 @@
 
 RGBDDeprojector::RGBDDeprojector() {
     this->K = Eigen::Matrix3d::Identity();
+    this->colorImageSet = false;
 }
 
 RGBDDeprojector::~RGBDDeprojector() {
@@ -28,7 +29,7 @@ ros::Publisher RGBDDeprojector::getPointCloudPublisher() {
     return *this->point_cloud_pub;
 }
 
-void RGBDDeprojector::setPointCloudPublisher(ros::Publisher *point_cloud_pub) {
+void RGBDDeprojector::setPointCloudPublisher(std::shared_ptr<ros::Publisher> point_cloud_pub) {
     this->point_cloud_pub = point_cloud_pub;
 }
 
@@ -88,7 +89,7 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
             */
 
             // check if a color frame is present
-            if(this->last_color_image != nullptr) {
+            if(this->colorImageSet) {
                 // fill the point color
                 // 8 bits for each channel (0-255), 3 channels (BGR)
                 /*
@@ -137,5 +138,6 @@ void RGBDDeprojector::colorImageCallback(const sensor_msgs::Image::ConstPtr& msg
         ROS_ERROR("Error converting color image to OpenCV matrix: %s", e.what());
         return;
     }
-    this->last_color_image = &(cv_ptr->image);
+    this->last_color_image = cv_ptr->image;
+    this->colorImageSet = true;
 }
