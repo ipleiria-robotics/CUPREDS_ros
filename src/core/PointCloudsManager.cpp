@@ -15,7 +15,7 @@ PointCloudsManager::PointCloudsManager(size_t n_sources, time_t max_age) {
 		this->allocCloudManagers();
 
         // initialize empty merged cloud
-        this->mergedCloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
+        this->mergedCloud = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>());
 
 		this->max_age = max_age;
 }
@@ -66,10 +66,12 @@ size_t PointCloudsManager::topicNameToIndex(std::string topicName) {
 	return index;
 }
 
-bool PointCloudsManager::appendToMerged(pcl::PointCloud<pcl::PointXYZ>::Ptr input) {
+bool PointCloudsManager::appendToMerged(pcl::PointCloud<pcl::PointXYZRGB>::Ptr input) {
+	// PointCloud alignment with ICP is failing, I suppose due to the lack of superposition
+	// of the tested dataset. Still to be tested
 	/*
 	// align the pointclouds
-	pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+	pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
 	icp.setInputSource(input);
 	icp.setInputTarget(this->mergedCloud); // "input" will align to "merged"
 	icp.align(*this->mergedCloud); // combine the aligned pointclouds on the "merged" instance
@@ -84,7 +86,7 @@ bool PointCloudsManager::appendToMerged(pcl::PointCloud<pcl::PointXYZ>::Ptr inpu
 	return false;
 }
 
-void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::string topicName) {
+void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string topicName) {
 		
 
 	size_t index = this->topicNameToIndex(topicName);
@@ -124,13 +126,13 @@ void PointCloudsManager::clearMergedCloud() {
 void PointCloudsManager::downsampleMergedCloud() {
 	
 	// create a downsampler instance
-	pcl::VoxelGrid<pcl::PointXYZ> downsampler;
+	pcl::VoxelGrid<pcl::PointXYZRGB> downsampler;
 	downsampler.setInputCloud(this->mergedCloud);
 	downsampler.setLeafSize(FILTER_VOXEL_SIZE, FILTER_VOXEL_SIZE, FILTER_VOXEL_SIZE);
 	downsampler.filter(*this->mergedCloud); // replace with the downsampled cloud
 }
 
-pcl::PointCloud<pcl::PointXYZ> PointCloudsManager::getMergedCloud() {
+pcl::PointCloud<pcl::PointXYZRGB> PointCloudsManager::getMergedCloud() {
 
 	// clear the old merged cloud
 	this->clearMergedCloud();

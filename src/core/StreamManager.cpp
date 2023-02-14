@@ -27,7 +27,7 @@ void StreamManager::computeTransform() {
 	this->transformComputed = true; // set the flag to mark stream as ready
 }
 
-void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
+void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 	this->transformComputed = false;
 	this->cloud = cloud;
 	if((this->timestamp = time(NULL)) < 0) {
@@ -41,7 +41,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
 	this->computeTransform();
 }
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr StreamManager::getCloud() {
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 	return this->cloud;
 }
 

@@ -32,7 +32,7 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
     ROS_INFO("New pointcloud from %s", topicName.c_str());
 
     // convert from the ROS to the PCL format
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::fromROSMsg(*msg, *cloud);
 
     try {
@@ -67,6 +67,6 @@ void PCLRegistrator::setPublisher(std::shared_ptr<ros::Publisher> point_cloud_pu
     this->point_cloud_pub = point_cloud_pub;
 }
 
-pcl::PointCloud<pcl::PointXYZ> PCLRegistrator::getPointCloud() {
+pcl::PointCloud<pcl::PointXYZRGB> PCLRegistrator::getPointCloud() {
     return this->manager->getMergedCloud();
 }
