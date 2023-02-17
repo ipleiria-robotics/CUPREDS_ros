@@ -70,6 +70,8 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
 	}
 	cv::Mat depth_image = cv_ptr->image;
 
+	this->last_depth_image = depth_image;
+
 	// convert the eigen intrinsic matrix to an opencv matrix
 	cv::Mat K_cv;
 	cv::eigen2cv(this->K, K_cv);	
@@ -91,11 +93,19 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
 	for(int i = 0; i < points_cv.rows; i++) {
 			for(int j = 0; j < points_cv.cols; j++) {
 					pcl::PointXYZRGB& point = this->cloud.points[i * points_cv.cols + j];
-					cv::Vec3f& vec = points_cv.at<cv::Vec3f>(i,j);
-
+					cv::Vec3f& vec = points_cv.at<cv::Vec3f>(i,j); // get depth pixel
+					cv::Vec3b color = this->last_color_image.at<cv::Vec3b>(point.y, point.x);
+					
+					// copy the position
 					point.x = vec[0];
 					point.y = vec[1];
 					point.z = vec[2];
+					
+					// copy the color
+					point.r = color[2];
+					point.g = color[1];
+					point.b = color[0];
+					
 			}
 	}
 

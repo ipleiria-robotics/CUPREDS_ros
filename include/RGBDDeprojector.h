@@ -36,6 +36,7 @@ class RGBDDeprojector {
         pcl::PointCloud<pcl::PointXYZRGB> cloud;
         std::shared_ptr<ros::Publisher> point_cloud_pub = nullptr;
         cv::Mat last_color_image;
+		cv::Mat last_depth_image;
         bool colorImageSet = false;
 
     public:
