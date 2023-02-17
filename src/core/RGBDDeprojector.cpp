@@ -36,6 +36,7 @@ void RGBDDeprojector::setPointCloudPublisher(std::shared_ptr<ros::Publisher> poi
 void RGBDDeprojector::depthInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg) {
     
     // use openmp threads to copy the intrinsics matrix concurrently
+	// loop unrolling is used to increase performance
     #pragma omp parallel for
     for(int i = 0; i < 9; i++) {
         int row = i / 3;
@@ -59,50 +60,45 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
         return;
     }
 
+	// convert the sensor image to an opencv matrix
+	cv_bridge::CvImagePtr cv_ptr;
+	try {
+			cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
+	} catch(cv_bridge::Exception& e) {
+			ROS_ERROR("Error converting the sensor image into an OpenCV matrix: %s", e.what());
+			return;
+	}
+	cv::Mat depth_image = cv_ptr->image;
+
+	// convert the eigen intrinsic matrix to an opencv matrix
+	cv::Mat K_cv;
+	cv::eigen2cv(this->K, K_cv);	
+
     // clear the point cloud before filling
     this->cloud.clear();
-    // deproject the depth image
-    for(size_t x = 0; x < msg->width; x++) {
-        for(size_t y = 0; y < msg->height; y++) {
-            size_t index = y * msg->width + x;
 
-            /*
-            Eigen::Matrix<double, 3, 1> pixel_vector = {
-                (double) x,
-                (double) y,
-                1.0
-            };
+	// use opencv to reproject the points from the depth image and intrinsics to a cv mat
+	cv::Mat points_cv;
+	cv::reprojectImageTo3D(depth_image, points_cv, K_cv);
 
-            Eigen::Matrix<double, 3, 1> point_vector = (this->K * pixel_vector) / msg->data[index];
-            */
-            
-            pcl::PointXYZRGB point;
-            double z = (double) msg->data[index] * 50 / 256;
-            // deproject the point position
-            point.x = (x - this->K(0, 2)) * z / this->K(0, 0);
-            point.y = (y - this->K(1, 2)) * z / this->K(1, 1);
-            point.z = z;
-            /*
-            point.x = point_vector(0);
-            point.y = point_vector(1);
-            point.z = point_vector(2);
-            */
+	// convert the opencv matrix into a pcl pointcloud
+	this->cloud.width = points_cv.cols;
+	this->cloud.height = points_cv.rows;
+	this->cloud.points.resize(points_cv.total());
+	
+	// TODO: this is EXTREMELY processor intensive and slow, should do with CUDA instead
+	// at least use some kind of thread pool
+	for(int i = 0; i < points_cv.rows; i++) {
+			for(int j = 0; j < points_cv.cols; j++) {
+					pcl::PointXYZRGB& point = this->cloud.points[i * points_cv.cols + j];
+					cv::Vec3f& vec = points_cv.at<cv::Vec3f>(i,j);
 
-            // check if a color frame is present
-            if(this->colorImageSet) {
-                // fill the point color
-                // 8 bits for each channel (0-255), 3 channels (BGR)
-                /*
-                point.rgb = this->last_color_image->at<cv::Vec3b>(y, x)[2] << 16 |
-                            this->last_color_image->at<cv::Vec3b>(y, x)[1] << 8 |
-                            this->last_color_image->at<cv::Vec3b>(y, x)[0];
-                            */
-                
-            }
+					point.x = vec[0];
+					point.y = vec[1];
+					point.z = vec[2];
+			}
+	}
 
-            this->cloud.push_back(point);
-        }
-    }
 
     // get the deprojection end time
     if(gettimeofday(&end, NULL)) {
@@ -123,7 +119,7 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
 
     // publish the deprojected points
     sensor_msgs::PointCloud2 point_cloud;
-    pcl::toROSMsg(this->cloud, point_cloud);
+    pcl::toROSMsg(this->cloud, point_cloud); // create a ros message from the pointcloud
     point_cloud.header.frame_id = this->camera_frame_id;
     this->point_cloud_pub->publish(point_cloud);
 }

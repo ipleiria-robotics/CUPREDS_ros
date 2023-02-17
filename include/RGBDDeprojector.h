@@ -15,10 +15,14 @@
 #include "sensor_msgs/image_encodings.h"
 #include <cv_bridge/cv_bridge.h>
 #include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Core>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/core/eigen.hpp>
+#include <opencv2/calib3d.hpp>
 #include <cstring>
 #include <cerrno>
 #include <sys/time.h>
