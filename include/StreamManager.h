@@ -13,6 +13,7 @@
 #include <iostream>
 #include <cstring>
 #include <cerrno>
+#include <chrono>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/common/transforms.h>
@@ -23,7 +24,7 @@
 class StreamManager {
     private:
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
-        time_t timestamp = -1; // timestamp of the last update
+        long long timestamp = -1; // timestamp of the last update in milliseconds
         Eigen::Affine3d transform;
         bool transformSet = false;
         bool transformComputed = false; // this is to prevent transforming the cloud multiple times

@@ -8,6 +8,8 @@
 
 #include "PointCloudsManager.h"
 
+#include <utility>
+
 PointCloudsManager::PointCloudsManager(size_t n_sources, time_t max_age) {
 		this->n_sources = n_sources;
 
@@ -23,9 +25,8 @@ PointCloudsManager::PointCloudsManager(size_t n_sources, time_t max_age) {
 PointCloudsManager::~PointCloudsManager() {
 	// delete each of the instances first
 	#pragma omp parallel for
-	for(size_t i = 0; i < this->n_sources; i++) {
-		this->cloudManagers[i];
-	}
+	for(size_t i = 0; i < this->n_sources; i++)
+		this->cloudManagers[i].reset();
 }
 
 size_t PointCloudsManager::getNClouds() {
@@ -42,31 +43,30 @@ void PointCloudsManager::allocCloudManagers() {
 // remove pointclouds older than the defined max age
 void PointCloudsManager::clean() {
 	// get the current timestamp to calculate pointclouds age
-	time_t cur_timestamp;
-	if((cur_timestamp = time(NULL)) < 0) {
-		std::cerr << "Error getting current timestamp: " << strerror(errno) << std::endl;
-		return;
-	}
+    long long cur_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+
 	// delete instances older than max_age
 	#pragma omp parallel for
 	for(size_t i = 0; i < this->n_sources; i++) {
 		if(this->cloudManagers[i] != nullptr) {
-			if(cur_timestamp - this->cloudManagers[i]->getTimestamp() > max_age)
-				this->cloudManagers[i] = nullptr;
-		}
+            if (this->cloudManagers[i]->getTimestamp() < cur_timestamp - (this->max_age * 1000)) {
+                this->cloudManagers[i].reset();
+                this->cloudManagers[i] = nullptr;
+            }
+        }
 	}
 }
 
-size_t PointCloudsManager::topicNameToIndex(std::string topicName) {
+size_t PointCloudsManager::topicNameToIndex(const std::string& topicName) {
 	// the pointcloud topic names must be "pointcloud0", "pointcloud1", etc.
 	// so, we can use the number after "pointcloud" as index on the array
 	std::string cloudNumber = topicName.substr(10);
-	size_t index = atol(cloudNumber.c_str());
+	size_t index = strtol(cloudNumber.c_str(), nullptr, 10);
 
 	return index;
 }
 
-bool PointCloudsManager::appendToMerged(pcl::PointCloud<pcl::PointXYZRGB>::Ptr input) {
+bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
 	// PointCloud alignment with ICP is failing, I suppose due to the lack of superposition
 	// of the tested dataset. Still to be tested
 	/*
@@ -86,25 +86,24 @@ bool PointCloudsManager::appendToMerged(pcl::PointCloud<pcl::PointXYZRGB>::Ptr i
 	return false;
 }
 
-void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string topicName) {
-		
+void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, const std::string& topicName) {
 
 	size_t index = this->topicNameToIndex(topicName);
 
-	// set the pointcloud as the latest of this source
 	// check if it was ever defined
 	if(this->cloudManagers[index] == nullptr) {
 		this->cloudManagers[index] = std::make_shared<StreamManager>();
 	} else {
-		this->cloudManagers[index]->addCloud(cloud);
+        // add the new cloud to the corresponding stream manager
+		this->cloudManagers[index]->addCloud(std::move(cloud));
 	}
 
 	// clean the old pointclouds (defined by max_age)
 	// doing this only after insertion avoids instance immediate destruction and recreation upon updating
-	this->clean();
+	// this->clean();
 }
 
-void PointCloudsManager::setTransform(Eigen::Affine3d transformEigen, std::string topicName) {
+void PointCloudsManager::setTransform(const Eigen::Affine3d& transformEigen, const std::string& topicName) {
 
 	size_t index = this->topicNameToIndex(topicName);
 
@@ -139,9 +138,12 @@ pcl::PointCloud<pcl::PointXYZRGB> PointCloudsManager::getMergedCloud() {
 
 	bool firstCloud = true;
 
+    long long cur_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+
+    #pragma omp parallel for
 	for(size_t i = 0; i < this->n_sources; i++) {
 		if(this->cloudManagers[i] != nullptr) {
-			if(this->cloudManagers[i]->hasCloudReady()) {
+			if(this->cloudManagers[i]->hasCloudReady() && this->cloudManagers[i]->getTimestamp() >= cur_timestamp - (this->max_age * 1000)) {
 
 				// on the first pointcloud, the merged version is itself
 				if(firstCloud) {

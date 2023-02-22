@@ -10,6 +10,8 @@
 #define POINTCLOUDS_MANAGER_H_
 
 #include <iostream>
+#include <cstdlib>
+#include <chrono>
 #include <cstring>
 #include <cerrno>
 #include <pcl/point_cloud.h>
@@ -38,9 +40,9 @@ class PointCloudsManager {
 		bool mergedCloudDownsampled = false; // prevent double downsampling
 		void allocCloudManagers();
 		void clean(); // remove clouds older than "maxAge"
-		size_t topicNameToIndex(std::string topicName);
+		static size_t topicNameToIndex(const std::string& topicName);
 
-		bool appendToMerged(pcl::PointCloud<pcl::PointXYZRGB>::Ptr input);
+		bool appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input);
 		void clearMergedCloud();
 		void downsampleMergedCloud();
 
@@ -49,8 +51,8 @@ class PointCloudsManager {
 		PointCloudsManager(size_t n_sources, time_t max_age);
 		~PointCloudsManager();
 		size_t getNClouds();
-		void addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, std::string topicName);
-		void setTransform(Eigen::Affine3d transformEigen, std::string topicName);
+		void addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, const std::string& topicName);
+		void setTransform(const Eigen::Affine3d& transformEigen, const std::string& topicName);
 
 		pcl::PointCloud<pcl::PointXYZRGB> getMergedCloud();
 };

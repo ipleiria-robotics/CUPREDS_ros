@@ -8,13 +8,16 @@
 
 #include "StreamManager.h"
 
+#include <utility>
+
 StreamManager::StreamManager() {
 	this->cloud = nullptr;
 	this->timestamp = -1;
+    this->transformComputed = false;
 }
 
 StreamManager::~StreamManager() {
-
+    this->cloud.reset();
 }
 
 void StreamManager::computeTransform() {
@@ -29,11 +32,8 @@ void StreamManager::computeTransform() {
 
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 	this->transformComputed = false;
-	this->cloud = cloud;
-	if((this->timestamp = time(NULL)) < 0) {
-		ROS_WARN("Error getting current timestamp: %s", strerror(errno));
-		return;
-	}
+	this->cloud = std::move(cloud);
+	this->timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 	if(!this->transformSet) {
 		ROS_WARN("Transform not set, cloud will not be transformed");
 		return;
