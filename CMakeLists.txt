@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(pcl_aggregator LANGUAGES CXX CUDA)
 
+set(CMAKE_CXX_STANDARD 20)
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
@@ -179,6 +181,7 @@ add_executable(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(StreamManager ${PCL_LIBRARIES})
 target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(PointCloudList ${PCL_LIBRARIES})
 target_link_libraries(PointCloudsManager ${PCL_LIBRARIES} ${OPENMP_LIBRARIES} PointCloudList StreamManager)

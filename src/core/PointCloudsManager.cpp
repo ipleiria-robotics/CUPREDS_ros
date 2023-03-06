@@ -13,9 +13,6 @@
 PointCloudsManager::PointCloudsManager(size_t n_sources, time_t max_age) {
 		this->n_sources = n_sources;
 
-		// allocate the array
-		this->allocCloudManagers();
-
         // initialize empty merged cloud
         this->mergedCloud = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>());
 
@@ -23,21 +20,11 @@ PointCloudsManager::PointCloudsManager(size_t n_sources, time_t max_age) {
 }
 
 PointCloudsManager::~PointCloudsManager() {
-	// delete each of the instances first
-	#pragma omp parallel for
-	for(size_t i = 0; i < this->n_sources; i++)
-		this->cloudManagers[i].reset();
+    // TODO: delete all instances of StreamManagers on the hashtable and set
 }
 
 size_t PointCloudsManager::getNClouds() {
 	return this->n_sources;
-}
-
-void PointCloudsManager::allocCloudManagers() {
-	// initialize all instances to nullptr
-	# pragma omp parallel for
-	for(size_t i = 0; i < this->n_sources; i++)
-		this->cloudManagers.push_back(nullptr);
 }
 
 // remove pointclouds older than the defined max age
@@ -45,25 +32,20 @@ void PointCloudsManager::clean() {
 	// get the current timestamp to calculate pointclouds age
     long long cur_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 
-	// delete instances older than max_age
-	#pragma omp parallel for
-	for(size_t i = 0; i < this->n_sources; i++) {
-		if(this->cloudManagers[i] != nullptr) {
-            if (this->cloudManagers[i]->getTimestamp() < cur_timestamp - (this->max_age * 1000)) {
-                this->cloudManagers[i].reset();
-                this->cloudManagers[i] = nullptr;
-            }
-        }
+	// remove all the stream managers older than the max age with O(logN + k) time complexity
+	long long min_timestamp = cur_timestamp - (this->max_age * 1000);
+	// this "bound" object is used just for search
+	std::shared_ptr<StreamManager> bound = std::make_shared<StreamManager>("bound");
+	bound->setTimestamp(cur_timestamp - (this->max_age * 1000));
+
+	// find the last element with smaller order than the criteria
+	auto iter = this->streamsToMerge.lower_bound(bound);
+
+	// remove all previous elements
+	while(iter != this->streamsToMerge.begin()) {
+		--iter;
+		this->streamsToMerge.erase(iter);
 	}
-}
-
-size_t PointCloudsManager::topicNameToIndex(const std::string& topicName) {
-	// the pointcloud topic names must be "pointcloud0", "pointcloud1", etc.
-	// so, we can use the number after "pointcloud" as index on the array
-	std::string cloudNumber = topicName.substr(10);
-	size_t index = strtol(cloudNumber.c_str(), nullptr, 10);
-
-	return index;
 }
 
 bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
@@ -88,31 +70,28 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>:
 
 void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, const std::string& topicName) {
 
-	size_t index = this->topicNameToIndex(topicName);
+    // the key is not present
+    if (this->streamManagers.count(topicName) == 0) {
+        this->streamManagers[topicName] = std::make_shared<StreamManager>(topicName);
+    }
 
-	// check if it was ever defined
-	if(this->cloudManagers[index] == nullptr) {
-		this->cloudManagers[index] = std::make_shared<StreamManager>();
-	} else {
-        // add the new cloud to the corresponding stream manager
-		this->cloudManagers[index]->addCloud(std::move(cloud));
-	}
+    this->streamManagers[topicName]->addCloud(std::move(cloud));
 
-	// clean the old pointclouds (defined by max_age)
-	// doing this only after insertion avoids instance immediate destruction and recreation upon updating
-	// this->clean();
+	// perform cleanup
+	this->clean();
+
+	// remove the stream manager from the set, due to the reordering
+	this->streamsToMerge.erase(this->streamManagers[topicName]);
+
+	// reinsert the stream manager on the set
+	this->streamsToMerge.insert(this->streamManagers[topicName]);
 }
 
 void PointCloudsManager::setTransform(const Eigen::Affine3d& transformEigen, const std::string& topicName) {
 
-	size_t index = this->topicNameToIndex(topicName);
-
-	// check if it was ever defined
-	if(this->cloudManagers[index] == nullptr) {
-		this->cloudManagers[index] = std::make_shared<StreamManager>();
-	} else {
-		this->cloudManagers[index]->setTransform(transformEigen);
-	}
+	if(this->streamManagers.count(topicName) == 0)
+		this->streamManagers[topicName] = std::make_shared<StreamManager>(topicName);
+	this->streamManagers[topicName]->setSensorTransform(transformEigen);
 }
 
 void PointCloudsManager::clearMergedCloud() {
@@ -138,22 +117,18 @@ pcl::PointCloud<pcl::PointXYZRGB> PointCloudsManager::getMergedCloud() {
 
 	bool firstCloud = true;
 
-    long long cur_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+	// TODO: review performance of only perform merging on demand
+	// points from pointclouds older than the max age can be removed with "ExtractIndices"
+	for(auto iter = this->streamsToMerge.begin(); iter != this->streamsToMerge.end(); iter++) {
+		if((*iter)->hasCloudReady()) {
 
-    #pragma omp parallel for
-	for(size_t i = 0; i < this->n_sources; i++) {
-		if(this->cloudManagers[i] != nullptr) {
-			if(this->cloudManagers[i]->hasCloudReady() && this->cloudManagers[i]->getTimestamp() >= cur_timestamp - (this->max_age * 1000)) {
-
-				// on the first pointcloud, the merged version is itself
-				if(firstCloud) {
-					*this->mergedCloud += *this->cloudManagers[i]->getCloud();
-					firstCloud = false;
-				} else {
-					this->appendToMerged(this->cloudManagers[i]->getCloud());
-				}
+			if(firstCloud) {
+				*this->mergedCloud += *(*iter)->getCloud();
+			} else {
+				this->appendToMerged((*iter)->getCloud());
 			}
 		}
+		iter++;
 	}
 
 	this->downsampleMergedCloud();

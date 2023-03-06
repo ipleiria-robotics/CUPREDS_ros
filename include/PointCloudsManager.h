@@ -22,7 +22,8 @@
 #include <eigen3/Eigen/Dense>
 #include "PointCloudList.h"
 #include "StreamManager.h"
-#include <vector>
+#include <unordered_map>
+#include <set>
 #include <memory>
 
 #define FILTER_VOXEL_SIZE 0.1f
@@ -35,12 +36,11 @@ class PointCloudsManager {
 		size_t n_sources;
 		time_t max_age;
 		// the array of instances below functions almost as a hashtable. details explained on "addCloud"
-		std::vector<std::shared_ptr<StreamManager>> cloudManagers; // array of point cloud managers - fixed size = n_sources
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr mergedCloud = nullptr; // the merged cloud
+        std::unordered_map<std::string,std::shared_ptr<StreamManager>> streamManagers; // map of stream manager pointers indexed by topic name
+        std::set<std::shared_ptr<StreamManager>,CompareStreamManager> streamsToMerge; // list of streams to consider, having the max age in account
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr mergedCloud; // the merged cloud
 		bool mergedCloudDownsampled = false; // prevent double downsampling
-		void allocCloudManagers();
-		void clean(); // remove clouds older than "maxAge"
-		static size_t topicNameToIndex(const std::string& topicName);
+		void clean(); // do cleanup on the cloudsToMerge list
 
 		bool appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input);
 		void clearMergedCloud();
