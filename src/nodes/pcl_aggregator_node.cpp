@@ -43,12 +43,11 @@ int main(int argc, char **argv) {
     std::vector<ros::Subscriber> pcl_subscribers;
 
 	ros::Publisher pub = nh.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, PCL_QUEUES_LEN);
-	std::shared_ptr<ros::Publisher> pcl_publisher(&pub);
 
 	PCLRegistrator *registrator = new PCLRegistrator(n_pointclouds, max_pointcloud_age);
 
     // initialize the publisher on the registrator
-    registrator->setPublisher(pcl_publisher);
+    registrator->setPublisher(pub);
 
     // set the robot base frame
     registrator->setRobotFrame(robot_base);
@@ -79,7 +78,7 @@ int main(int argc, char **argv) {
         ros_cloud.header.frame_id = registrator->getRobotFrame();
 
         // publish the PointCloud
-        pcl_publisher->publish(ros_cloud);
+        pub.publish(ros_cloud);
  
         r.sleep();
     }

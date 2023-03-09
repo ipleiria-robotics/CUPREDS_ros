@@ -28,6 +28,7 @@ size_t PointCloudsManager::getNClouds() {
 }
 
 // remove pointclouds older than the defined max age
+// OBSOLETE
 void PointCloudsManager::clean() {
 	// get the current timestamp to calculate pointclouds age
     long long cur_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -77,14 +78,13 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, 
 
     this->streamManagers[topicName]->addCloud(std::move(cloud));
 
-	// perform cleanup
-	this->clean();
-
+	/*
 	// remove the stream manager from the set, due to the reordering
 	this->streamsToMerge.erase(this->streamManagers[topicName]);
 
 	// reinsert the stream manager on the set
 	this->streamsToMerge.insert(this->streamManagers[topicName]);
+	*/
 }
 
 void PointCloudsManager::setTransform(const Eigen::Affine3d& transformEigen, const std::string& topicName) {
@@ -119,7 +119,7 @@ pcl::PointCloud<pcl::PointXYZRGB> PointCloudsManager::getMergedCloud() {
 
 	// TODO: review performance of only perform merging on demand
 	// points from pointclouds older than the max age can be removed with "ExtractIndices"
-	for(auto iter = this->streamsToMerge.begin(); iter != this->streamsToMerge.end(); iter++) {
+	for(auto iter = this->streamsToMerge.begin(); iter != this->streamsToMerge.end(); ++iter) {
 		if((*iter)->hasCloudReady()) {
 
 			if(firstCloud) {

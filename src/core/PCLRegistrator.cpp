@@ -63,7 +63,7 @@ void PCLRegistrator::setRobotFrame(std::string robotFrame) {
     this->robotFrame = robotFrame;
 }
 
-void PCLRegistrator::setPublisher(std::shared_ptr<ros::Publisher> point_cloud_pub) {
+void PCLRegistrator::setPublisher(ros::Publisher point_cloud_pub) {
     this->point_cloud_pub = point_cloud_pub;
 }
 

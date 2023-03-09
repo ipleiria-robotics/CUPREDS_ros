@@ -58,36 +58,10 @@ void clearPointCloudsRoutine(StreamManager *instance) {
 
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 
-	/*
-	// try to do ICP
-	pcl::IterativeClosestPoint<pcl::PointXYZRGB,pcl::PointXYZRGB> icp;
-	icp.setInputSource(cloud);
-	icp.setInputTarget(this->cloud); // align the received cloud into the merged
-	if(icp.hasConverged()) {
-		// if ICP had success, we can get the linear transformation between pointclouds
-		// store the matrix of the inverse transformation
-		// apply that transformation to the merged pointcloud, changing its origin to the one of the latest pointcloud collected
-	} else {
-		// TODO: in case it fails, use the subscribed transformation of the robot to the map between states
-	}
-	
-
-	// TODO: merge multiple scans into a single pointcloud, instead of considering only the latest cloud
-	// considering only the latest cloud leads to the lost of all of the data between cycles
-	this->sensorTransformComputed = false;
-	this->cloud = std::move(cloud);
-	this->timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-	if(!this->sensorTransformSet) {
-		ROS_WARN("Transform not set, cloud will not be transformed");
-		return;
-	}
-	this->computeTransform();
-	*/
-
 	// create a stamped point cloud object to keep this pointcloud
 	StampedPointCloud spcl = StampedPointCloud();
 	spcl.setOriginTopic(this->topicName);
-	spcl.setPointCloud(*cloud);
+	spcl.setPointCloud(cloud);
 
 	// start a thread to transform the pointcloud
 	std::thread transformationThread(applyTransformRoutine, spcl, sensorTransform);
@@ -104,6 +78,38 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 }
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
+
+	// clear the old cloud
+	this->cloud->empty();
+
+	// clear the set
+	this->clear();
+
+	// create a icp object
+	pcl::IterativeClosestPoint<pcl::PointXYZRGB,pcl::PointXYZRGB> icp;
+
+	// iterator
+	std::set<StampedPointCloud,CompareStampedPointCloud>::iterator it;
+
+	// iterate over all pointclouds in the set and do ICP
+	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
+
+		// check if the pointcloud is transformed
+		if(!(it->isTransformComputed())) {
+			// compute the transform if available
+			if(this->sensorTransformSet) {
+				pcl::transformPointCloud<pcl::PointXYZRGB>(*it->getPointCloud(), *it->getPointCloud(),
+					this->sensorTransform);
+			}
+		}
+
+		if(it->isTransformComputed()) {
+			icp.setInputSource(it->getPointCloud());
+			icp.setInputTarget(this->cloud);
+			icp.align(*this->cloud);
+		}
+
+	}
 	return this->cloud;
 }
 

@@ -15,7 +15,7 @@ long long StampedPointCloud::getTimestamp() {
     return this->timestamp;
 }
 
-pcl::PointCloud<pcl::PointXYZRGB> StampedPointCloud::getPointCloud() {
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr StampedPointCloud::getPointCloud() const {
     return this->cloud;
 }
 
@@ -27,7 +27,7 @@ void StampedPointCloud::setTimestamp(long long t) {
     this->timestamp = t;
 }
 
-void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>& c) {
+void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr c) {
     this->cloudSet = true;
     this->cloud = c;
 }
@@ -36,11 +36,15 @@ void StampedPointCloud::setOriginTopic(std::string origin) {
     this->originTopic = origin;
 }
 
+bool StampedPointCloud::isTransformComputed() const {
+    return this->transformComputed;
+}
+
 void StampedPointCloud::applyTransform(Eigen::Affine3d tf) {
     // TODO: transform the pointcloud. have in mind they are smart pointers, 
     // attention to performance issues
     if(this->cloudSet) {
-        pcl::transformPointCloud(this->cloud, this->cloud, tf);
+        pcl::transformPointCloud(*this->cloud, *this->cloud, tf);
         this->transformComputed = true;
     }
 }

@@ -11,6 +11,8 @@
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/registration/icp.h>
+#include <pcl/common/transforms.h>
 #include <eigen3/Eigen/Dense>
 
 #define POINTCLOUD_ORIGIN_NONE "NONE"
@@ -28,13 +30,14 @@ class StampedPointCloud {
         StampedPointCloud();
     
         long long getTimestamp();
-        pcl::PointCloud<pcl::PointXYZRGB> getPointCloud();
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloud() const;
         std::string getOriginTopic();
 
         void setTimestamp(long long t);
-        void setPointCloud(pcl::PointCloud<pcl::PointXYZRGB> cloud);
+        void setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
         void setOriginTopic(std::string origin);
 
+        bool isTransformComputed() const;
         void applyTransform(Eigen::Affine3d tf);
 };
 

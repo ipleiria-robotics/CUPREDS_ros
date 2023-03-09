@@ -48,6 +48,7 @@
       <config projectName="pcl_aggregator" targetName="download_extra_data" />
       <config projectName="pcl_aggregator" targetName="run_tests" />
       <config projectName="pcl_aggregator" targetName="sensor_msgs_generate_messages_eus" />
+      <config projectName="pcl_aggregator" targetName="StampedPointCloud" />
       <config projectName="pcl_aggregator" targetName="actionlib_generate_messages_cpp" />
       <config projectName="pcl_aggregator" targetName="actionlib_msgs_generate_messages_nodejs" />
       <config projectName="pcl_aggregator" targetName="actionlib_msgs_generate_messages_py" />
@@ -84,9 +85,9 @@
     <list default="true" id="08ad1cb3-e393-4764-b4ed-8468a0f99107" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/PointCloudsManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/PointCloudsManager.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/StreamManager.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/StreamManager.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/StampedPointCloud.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/StampedPointCloud.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/PointCloudsManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/PointCloudsManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/StampedPointCloud.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/StampedPointCloud.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/StreamManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/StreamManager.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -133,6 +134,11 @@
   }
 }</component>
   <component name="RunManager" selected="CMake Application.pcl_aggregator_node">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="PCLRegistrator" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="pcl_aggregator" TARGET_NAME="PCLRegistrator" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -149,6 +155,11 @@
       </method>
     </configuration>
     <configuration name="RGBDDeprojector" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="pcl_aggregator" TARGET_NAME="RGBDDeprojector" CONFIG_NAME="Debug">
+      <method v="2">
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="StampedPointCloud" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="pcl_aggregator" TARGET_NAME="StampedPointCloud" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -490,6 +501,7 @@
       <item itemvalue="CMake Application.sensor_msgs_generate_messages_lisp" />
       <item itemvalue="CMake Application.sensor_msgs_generate_messages_nodejs" />
       <item itemvalue="CMake Application.sensor_msgs_generate_messages_py" />
+      <item itemvalue="CMake Application.StampedPointCloud" />
       <item itemvalue="CMake Application.std_msgs_generate_messages_cpp" />
       <item itemvalue="CMake Application.std_msgs_generate_messages_eus" />
       <item itemvalue="CMake Application.std_msgs_generate_messages_lisp" />
@@ -528,6 +540,7 @@
       <workItem from="1677093109859" duration="3197000" />
       <workItem from="1677096312931" duration="4182000" />
       <workItem from="1677254106419" duration="3374000" />
+      <workItem from="1678212591851" duration="1225000" />
     </task>
     <servers />
   </component>
