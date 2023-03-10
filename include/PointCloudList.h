@@ -3,6 +3,7 @@
 * All rights reserved.
 *
 * Doubly linked circular list of PointClouds implementation.
+* DEPRECATED
 */
 
 #ifndef POINT_CLOUD_LIST_

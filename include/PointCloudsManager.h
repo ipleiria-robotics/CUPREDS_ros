@@ -2,8 +2,7 @@
 * Copyright (c) 2023 Carlos Tojal.
 * All rights reserved.
 *
-* Manage the different PointCloud managers and lists, keeping the latest and removing the ones
-* older than the max defined age.
+* Manage the different stream managers.
 */
 
 #ifndef POINTCLOUDS_MANAGER_H_

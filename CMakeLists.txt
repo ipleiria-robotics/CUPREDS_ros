@@ -149,6 +149,8 @@ ${CUDA_INCLUDE_DIRS}
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/pcl_aggregator_node.cpp)
 
+set(CORE_SOURCE_DIR include)
+
 # compile the RGBDDeprojector class with nvcc, because we are calling a cuda kernel
 add_library(RGBDDeprojector STATIC src/core/RGBDDeprojector.cpp)
 add_library(PCLRegistrator STATIC src/core/PCLRegistrator.cpp)
