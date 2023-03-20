@@ -39,7 +39,8 @@ void PointCloudsManager::clean() {
 	std::shared_ptr<StreamManager> bound = std::make_shared<StreamManager>("bound");
 	bound->setTimestamp(cur_timestamp - (this->max_age * 1000));
 
-    // TODO: iterate the map and call the StreamManagers' cleanup method
+    for(auto iter = this->streamManagers.begin(); iter != this->streamManagers.end(); ++iter)
+        iter->second->clear();
 }
 
 bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
