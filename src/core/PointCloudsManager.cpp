@@ -39,14 +39,7 @@ void PointCloudsManager::clean() {
 	std::shared_ptr<StreamManager> bound = std::make_shared<StreamManager>("bound");
 	bound->setTimestamp(cur_timestamp - (this->max_age * 1000));
 
-	// find the last element with smaller order than the criteria
-	auto iter = this->streamsToMerge.lower_bound(bound);
-
-	// remove all previous elements
-	while(iter != this->streamsToMerge.begin()) {
-		--iter;
-		this->streamsToMerge.erase(iter);
-	}
+    // TODO: iterate the map and call the StreamManagers' cleanup method
 }
 
 bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
@@ -78,13 +71,6 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, 
 
     this->streamManagers[topicName]->addCloud(std::move(cloud));
 
-	/*
-	// remove the stream manager from the set, due to the reordering
-	this->streamsToMerge.erase(this->streamManagers[topicName]);
-
-	// reinsert the stream manager on the set
-	this->streamsToMerge.insert(this->streamManagers[topicName]);
-	*/
 }
 
 void PointCloudsManager::setTransform(const Eigen::Affine3d& transformEigen, const std::string& topicName) {
@@ -117,19 +103,21 @@ pcl::PointCloud<pcl::PointXYZRGB> PointCloudsManager::getMergedCloud() {
 
 	bool firstCloud = true;
 
-	// TODO: review performance of only perform merging on demand
-	// points from pointclouds older than the max age can be removed with "ExtractIndices"
-	for(auto iter = this->streamsToMerge.begin(); iter != this->streamsToMerge.end(); ++iter) {
-		if((*iter)->hasCloudReady()) {
+    // iterate the map
+    /* TODO: review performance of only perform merging on demand
+     * vs merging the pointclouds and removing as needed every time
+    */
+    for(auto iter = this->streamManagers.begin(); iter != this->streamManagers.end(); ++iter) {
+        if(iter->second->hasCloudReady()) {
 
-			if(firstCloud) {
-				*this->mergedCloud += *(*iter)->getCloud();
-			} else {
-				this->appendToMerged((*iter)->getCloud());
-			}
-		}
-		iter++;
-	}
+            if(firstCloud) {
+                this->mergedCloud = iter->second->getCloud();
+                firstCloud = false;
+            } else {
+                this->appendToMerged(iter->second->getCloud());
+            }
+        }
+    }
 
 	this->downsampleMergedCloud();
 

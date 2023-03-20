@@ -30,7 +30,7 @@ class StreamManager {
     private:
         std::string topicName;
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud; // shared pointer to the merged pointcloud
-        long long timestamp = -1; // timestamp of the last update in milliseconds
+        long long timestamp = -1; // timestamp of the oldest pointcloud in milliseconds
         Eigen::Affine3d sensorTransform; // transform of the sensor frame to the robot base
         bool sensorTransformSet = false; // was the sensor transform set?
         bool sensorTransformComputed = false; // this is to prevent transforming the cloud multiple times
@@ -51,8 +51,8 @@ class StreamManager {
         void clearCloud(); // clear the sensor's merged pointcloud
 		void addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr getCloud(); // returning the pointer prevents massive memory copies
-		time_t getTimestamp();
-        void setTimestamp(long long timestamp);
+		long long getTimestamp();
+        void setTimestamp(long long t);
         void setSensorTransform(Eigen::Affine3d transform);
 
         void setMaxAge(time_t max_age);

@@ -6,12 +6,7 @@
 
     <node name="pcl_aggregator" pkg="pcl_aggregator" type="pcl_aggregator_node" output="screen">
 
-        <remap to="/front_lslidar_point_cloud" from="pointcloud0" />
-        <remap to="/back_lslidar_point_cloud" from="pointcloud1" />
-        <remap to="/Navtech/FilteredPointcloud" from="pointcloud2" />
-        <remap to="/camera/depth/color/points" from="pointcloud3" />
-        <remap to="/camera_back_center/depth/color/points" from="pointcloud4" />
-        <remap to="/camera_back_left/depth/color/points" from="pointcloud5" />
-        <remap to="/camera_back_right/depth/color/points" from="pointcloud6" />
+        <remap to="/back_lslidar_point_cloud" from="pointcloud0" />
+        <remap to="/front_lslidar_point_cloud" from="pointcloud1" />
     </node>
 </launch>

@@ -113,12 +113,12 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 	return this->cloud;
 }
 
-time_t StreamManager::getTimestamp() {
+long long StreamManager::getTimestamp() {
 	return this->timestamp;
 }
 
-void StreamManager::setTimestamp(long long timestamp) {
-	this->timestamp = timestamp;
+void StreamManager::setTimestamp(long long t) {
+    this->timestamp = t;
 }
 
 void StreamManager::setSensorTransform(Eigen::Affine3d transform) {
@@ -146,6 +146,9 @@ void StreamManager::clear() {
 	long long max_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
 	max_timestamp -= (this->max_age * 1000);
 	spc_comp.setTimestamp(max_timestamp);
+
+    // the stream timestamp is the timestamp of the oldest pointcloud of the manager
+    this->timestamp = max_timestamp;
 	
 	// find the first pointcloud not meeting criteria
 	auto iter = this->clouds.lower_bound(spc_comp);
