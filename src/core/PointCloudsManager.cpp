@@ -30,14 +30,12 @@ size_t PointCloudsManager::getNClouds() {
 // remove pointclouds older than the defined max age
 // OBSOLETE
 void PointCloudsManager::clean() {
-	// get the current timestamp to calculate pointclouds age
-    long long cur_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+	
+    long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
 
-	// remove all the stream managers older than the max age with O(logN + k) time complexity
-	long long min_timestamp = cur_timestamp - (this->max_age * 1000);
 	// this "bound" object is used just for search
 	std::shared_ptr<StreamManager> bound = std::make_shared<StreamManager>("bound");
-	bound->setTimestamp(cur_timestamp - (this->max_age * 1000));
+	bound->setTimestamp(max_timestamp);
 
     for(auto iter = this->streamManagers.begin(); iter != this->streamManagers.end(); ++iter)
         iter->second->clear();

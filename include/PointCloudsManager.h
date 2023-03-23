@@ -21,6 +21,7 @@
 #include <eigen3/Eigen/Dense>
 #include "PointCloudList.h"
 #include "StreamManager.h"
+#include "Utils.h"
 #include <unordered_map>
 #include <set>
 #include <memory>

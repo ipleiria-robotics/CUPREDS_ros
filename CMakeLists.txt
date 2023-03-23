@@ -158,13 +158,14 @@ add_library(StampedPointCloud STATIC src/core/StampedPointCloud.cpp)
 add_library(StreamManager STATIC src/core/StreamManager.cpp)
 add_library(PointCloudList STATIC src/core/PointCloudList.cpp)
 add_library(PointCloudsManager STATIC src/core/PointCloudsManager.cpp)
+add_library(Utils STATIC src/core/Utils.cpp)
 
 add_executable(
     rgbd_deprojector_node src/nodes/rgbd_deprojector_node.cpp
 )
-add_dependencies(StreamManager StampedPointCloud)
+add_dependencies(StreamManager StampedPointCloud Utils)
 add_dependencies(rgbd_deprojector_node RGBDDeprojector)
-add_dependencies(PointCloudsManager PointCloudList StreamManager)
+add_dependencies(PointCloudsManager PointCloudList StreamManager Utils)
 add_dependencies(PCLRegistrator PointCloudsManager)
 
 add_executable(
@@ -186,10 +187,10 @@ add_executable(
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(StampedPointCloud ${PCL_LIBRARIES} ${Eigen_LIBRARIES})
-target_link_libraries(StreamManager ${PCL_LIBRARIES} StampedPointCloud)
+target_link_libraries(StreamManager ${PCL_LIBRARIES} StampedPointCloud Utils)
 target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(PointCloudList ${PCL_LIBRARIES})
-target_link_libraries(PointCloudsManager ${PCL_LIBRARIES} ${OPENMP_LIBRARIES} PointCloudList StreamManager)
+target_link_libraries(PointCloudsManager ${PCL_LIBRARIES} ${OPENMP_LIBRARIES} PointCloudList StreamManager Utils)
 target_link_libraries(PCLRegistrator ${catkin_LIBRARIES} PointCloudsManager)
 target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} PCLRegistrator)
 target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} RGBDDeprojector)

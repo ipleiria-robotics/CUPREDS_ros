@@ -23,6 +23,7 @@
 #include <memory>
 #include <thread>
 #include "StampedPointCloud.h"
+#include "Utils.h"
 
 // this class keeps a merged point cloud with a timestamp
 // each instance of this class can be seen as the manager for each sensor

@@ -159,11 +159,11 @@ time_t StreamManager::getMaxAge() {
 
 void StreamManager::clear() {
 
+	long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
+
 	// create a comparison object
 	StampedPointCloud spc_comp = StampedPointCloud();
-	long long max_timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-	max_timestamp -= (this->max_age * 1000);
-	spc_comp.setTimestamp(max_timestamp);
+	spc_comp.setTimestamp(Utils::getMaxTimestampForAge(this->max_age));
 
     // the stream timestamp is the timestamp of the oldest pointcloud of the manager
     this->timestamp = max_timestamp;
