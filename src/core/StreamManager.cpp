@@ -66,7 +66,7 @@ void clearPointCloudsRoutine(StreamManager *instance) {
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 
 	// create a stamped point cloud object to keep this pointcloud
-	StampedPointCloud spcl = StampedPointCloud();
+  	StampedPointCloud spcl = StampedPointCloud();
 	spcl.setOriginTopic(this->topicName);
 	spcl.setPointCloud(cloud);
 
@@ -124,9 +124,6 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 			icp.setInputTarget(this->cloud);
 			icp.align(*this->cloud);
 
-			if(icp.getFitnessScore() > 0.1)
-				std::cout << "Fitness score: " << icp.getFitnessScore() << std::endl;
-				
 		} catch (std::exception &e) {
 			std::cout << "Error performing sensor-wise ICP: " << e.what() << std::endl;
 		}
