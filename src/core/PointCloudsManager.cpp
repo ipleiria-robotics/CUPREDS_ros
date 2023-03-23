@@ -46,7 +46,7 @@ void PointCloudsManager::clean() {
 bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
 	// PointCloud alignment with ICP is failing, I suppose due to the lack of superposition
 	// of the tested dataset. Still to be tested
-	/*
+
 	// align the pointclouds
 	pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
 	icp.setInputSource(input);
@@ -57,7 +57,6 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>:
 		*mergedCloud += *input; // if alignment was not possible, just add the pointclouds
 
 	return icp.hasConverged(); // return true if alignment was possible
-	*/
 	*this->mergedCloud += *input;
 
 	return false;
@@ -109,18 +108,14 @@ pcl::PointCloud<pcl::PointXYZRGB> PointCloudsManager::getMergedCloud() {
      * vs merging the pointclouds and removing as needed every time
     */
     for(auto iter = this->streamManagers.begin(); iter != this->streamManagers.end(); ++iter) {
-        if(iter->second->hasCloudReady()) {
-
-            if(firstCloud) {
-                this->mergedCloud = iter->second->getCloud();
-                firstCloud = false;
-            } else {
-                this->appendToMerged(iter->second->getCloud());
-            }
-        }
+		if(firstCloud) {
+			this->mergedCloud = iter->second->getCloud();
+			firstCloud = false;
+		} else {
+			this->appendToMerged(iter->second->getCloud());
+		}
     }
 
-	this->downsampleMergedCloud();
-
-	return *this->mergedCloud;
+ 	// this->downsampleMergedCloud();
+   	return *this->mergedCloud;
 }

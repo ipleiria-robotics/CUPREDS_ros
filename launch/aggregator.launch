@@ -1,6 +1,6 @@
 <launch>
 
-    <param name="n_pointclouds" value="7" type="int" />
+    <param name="n_pointclouds" value="2" type="int" />
     <param name="robot_base" value="bobcat_base" type="str" />
     <param name="max_pointcloud_age" value="1" type="int" />
 

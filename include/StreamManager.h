@@ -18,6 +18,7 @@
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
 #include <pcl/common/transforms.h>
+#include <queue>
 #include <eigen3/Eigen/Dense>
 #include <memory>
 #include <thread>
@@ -29,15 +30,16 @@
 class StreamManager {
     private:
         std::string topicName;
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud; // shared pointer to the merged pointcloud
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud = nullptr; // shared pointer to the merged pointcloud
+        bool pointCloudSet = false;
         long long timestamp = -1; // timestamp of the oldest pointcloud in milliseconds
         Eigen::Affine3d sensorTransform; // transform of the sensor frame to the robot base
         bool sensorTransformSet = false; // was the sensor transform set?
-        bool sensorTransformComputed = false; // this is to prevent transforming the cloud multiple times
         Eigen::Affine3d transformToLastState;
         bool lastStateTransformSet;
         void computeTransform();
         std::set<StampedPointCloud, CompareStampedPointCloud> clouds;
+        std::queue<StampedPointCloud> clouds_not_transformed;
         time_t max_age;
 
     public:
@@ -59,8 +61,6 @@ class StreamManager {
         time_t getMaxAge();
 
         void clear(); // clear the stream's pointcloud
-
-        bool hasCloudReady();
 
 };
 

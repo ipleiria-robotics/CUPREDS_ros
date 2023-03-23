@@ -12,9 +12,8 @@
 
 StreamManager::StreamManager(std::string topicName) {
     this->topicName = topicName;
-	this->cloud = nullptr;
+	this->cloud = pcl::PointCloud<pcl::PointXYZRGB>().makeShared();
 	this->timestamp = -1;
-    this->sensorTransformComputed = false;
 }
 
 StreamManager::~StreamManager() {
@@ -37,13 +36,21 @@ bool StreamManager::operator==(const StreamManager &other) const {
 }
 
 void StreamManager::computeTransform() {
-	// transform already computed, transform not set or no cloud
-	if(this->sensorTransformComputed || !this->sensorTransformSet || this->cloud == nullptr) {
-		return;
+
+	while(this->clouds_not_transformed.size() > 0) {
+		
+		// get the first element
+		StampedPointCloud spcl = this->clouds_not_transformed.front();
+		spcl.applyTransform(this->sensorTransform);
+
+		// add to the set
+		this->clouds.insert(spcl);
+
+		// remove from the queue
+		this->clouds_not_transformed.pop();
 	}
-	// do the transform
-	pcl::transformPointCloud(*this->cloud, *this->cloud, this->sensorTransform);
-	this->sensorTransformComputed = true; // set the flag to mark stream as ready
+
+	this->pointCloudSet = true;
 }
 
 // this is a routine to call from a thread to transform a pointcloud
@@ -63,18 +70,27 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 	spcl.setOriginTopic(this->topicName);
 	spcl.setPointCloud(cloud);
 
-	// start a thread to transform the pointcloud
-	std::thread transformationThread(applyTransformRoutine, spcl, sensorTransform);
+	if(this->sensorTransformSet) {
+		// transform the incoming pointcloud and add directly to the set
 
-	// start a thread to clear the pointclouds older than max age
-	std::thread cleaningThread(clearPointCloudsRoutine, this);
+		// start a thread to transform the pointcloud
+		std::thread transformationThread(applyTransformRoutine, spcl, sensorTransform);
 
-	// wait for both threads to synchronize
-	transformationThread.join();
-	cleaningThread.join();
+		// start a thread to clear the pointclouds older than max age
+		std::thread cleaningThread(clearPointCloudsRoutine, this);
 
-	// add the new pointcloud to the set
-	this->clouds.insert(spcl);
+		// wait for both threads to synchronize
+		transformationThread.join();
+		cleaningThread.join();
+
+		// add the new pointcloud to the set
+		this->clouds.insert(spcl);
+
+	} else {
+
+		// add the pointcloud to the queue
+		this->clouds_not_transformed.push(spcl);
+	}
 }
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
@@ -91,25 +107,32 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 	// iterator
 	std::set<StampedPointCloud,CompareStampedPointCloud>::iterator it;
 
+	bool firstCloud = true;
+
 	// iterate over all pointclouds in the set and do ICP
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
-
-		// check if the pointcloud is transformed
-		if(!(it->isTransformComputed())) {
-			// compute the transform if available
-			if(this->sensorTransformSet) {
-				pcl::transformPointCloud<pcl::PointXYZRGB>(*it->getPointCloud(), *it->getPointCloud(),
-					this->sensorTransform);
-			}
+		if(firstCloud) {
+			// copy the first pointcloud to the cloud
+			pcl::copyPointCloud(*it->getPointCloud(), *this->cloud);
+			firstCloud = false;
+			continue;
 		}
-
-		if(it->isTransformComputed()) {
+		try {
+			if(it->getPointCloud()->size() == 0)
+				continue;
 			icp.setInputSource(it->getPointCloud());
 			icp.setInputTarget(this->cloud);
 			icp.align(*this->cloud);
-		}
 
+			if(icp.getFitnessScore() > 0.1)
+				std::cout << "Fitness score: " << icp.getFitnessScore() << std::endl;
+				
+		} catch (std::exception &e) {
+			std::cout << "Error performing sensor-wise ICP: " << e.what() << std::endl;
+		}
 	}
+
+	this->pointCloudSet = true;
 	return this->cloud;
 }
 
@@ -122,8 +145,6 @@ void StreamManager::setTimestamp(long long t) {
 }
 
 void StreamManager::setSensorTransform(Eigen::Affine3d transform) {
-	// mark the transform as not computed
-	this->sensorTransformComputed = false;
 
 	// set the new transform
     this->sensorTransform = transform;
@@ -150,15 +171,7 @@ void StreamManager::clear() {
     // the stream timestamp is the timestamp of the oldest pointcloud of the manager
     this->timestamp = max_timestamp;
 	
-	// find the first pointcloud not meeting criteria
-	auto iter = this->clouds.lower_bound(spc_comp);
 	// remove all pointclouds not meeting the criteria
-	while(iter != this->clouds.begin()) {
-		--iter;
+	for(auto iter = this->clouds.lower_bound(spc_comp); iter != this->clouds.begin(); --iter)
 		this->clouds.erase(iter);
-	}
-}
-
-bool StreamManager::hasCloudReady() {
-	return this->cloud != nullptr && this->sensorTransformComputed;
 }

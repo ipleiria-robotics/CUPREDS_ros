@@ -38,8 +38,13 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
     try {
 
         // get the transform from the robot base to the pointcloud frame
+        /*
         geometry_msgs::TransformStamped transform =
                 this->tfBuffer.lookupTransform(msg->header.frame_id, this->robotFrame, ros::Time(0));
+        */
+
+        geometry_msgs::TransformStamped transform =
+            this->tfBuffer.lookupTransform(this->robotFrame, msg->header.frame_id, ros::Time(0));
 
         // convert tf to Eigen homogenous transformation matrix
         Eigen::Affine3d transformEigen;
