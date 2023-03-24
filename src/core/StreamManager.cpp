@@ -73,15 +73,22 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 	if(this->sensorTransformSet) {
 		// transform the incoming pointcloud and add directly to the set
 
+		/*
 		// start a thread to transform the pointcloud
 		std::thread transformationThread(applyTransformRoutine, spcl, sensorTransform);
 
 		// start a thread to clear the pointclouds older than max age
 		std::thread cleaningThread(clearPointCloudsRoutine, this);
+		*/
+
+		// this->clear();
+		spcl.applyTransform(this->sensorTransform);
 
 		// wait for both threads to synchronize
+		/*
 		transformationThread.join();
 		cleaningThread.join();
+		*/
 
 		// add the new pointcloud to the set
 		this->clouds.insert(spcl);
@@ -159,16 +166,21 @@ time_t StreamManager::getMaxAge() {
 
 void StreamManager::clear() {
 
-	long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
+  	unsigned long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
 
 	// create a comparison object
 	StampedPointCloud spc_comp = StampedPointCloud();
-	spc_comp.setTimestamp(Utils::getMaxTimestampForAge(this->max_age));
+  	spc_comp.setTimestamp(Utils::getMaxTimestampForAge(this->max_age));
 
     // the stream timestamp is the timestamp of the oldest pointcloud of the manager
     this->timestamp = max_timestamp;
 	
 	// remove all pointclouds not meeting the criteria
-	for(auto iter = this->clouds.lower_bound(spc_comp); iter != this->clouds.begin(); --iter)
-		this->clouds.erase(iter);
+	for(auto iter = this->clouds.lower_bound(spc_comp); iter != this->clouds.begin(); iter--) {
+		try {
+			this->clouds.erase(iter);
+		} catch (std::exception &e) {
+			std::cout << "Error removing pointcloud: " << e.what() << std::endl;
+		}
+	}
 }

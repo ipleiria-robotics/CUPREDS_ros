@@ -14,13 +14,14 @@
 #include <pcl/registration/icp.h>
 #include <pcl/common/transforms.h>
 #include <eigen3/Eigen/Dense>
+#include <utility>
 
 #define POINTCLOUD_ORIGIN_NONE "NONE"
 
 class StampedPointCloud {
 
     private:
-        long long timestamp;
+        unsigned long long timestamp;
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
         bool cloudSet = false;
         bool transformComputed = false;
@@ -29,11 +30,11 @@ class StampedPointCloud {
     public:
         StampedPointCloud();
     
-        long long getTimestamp();
+        unsigned long long getTimestamp();
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloud() const;
         std::string getOriginTopic();
 
-        void setTimestamp(long long t);
+        void setTimestamp(unsigned long long t);
         void setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
         void setOriginTopic(std::string origin);
 

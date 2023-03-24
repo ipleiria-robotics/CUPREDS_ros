@@ -11,7 +11,7 @@
 StampedPointCloud::StampedPointCloud() {
 }
 
-long long StampedPointCloud::getTimestamp() {
+unsigned long long StampedPointCloud::getTimestamp() {
     return this->timestamp;
 }
 
@@ -23,13 +23,15 @@ std::string StampedPointCloud::getOriginTopic() {
     return this->originTopic;
 }
 
-void StampedPointCloud::setTimestamp(long long t) {
+void StampedPointCloud::setTimestamp(unsigned long long t) {
     this->timestamp = t;
 }
 
 void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr c) {
     this->cloudSet = true;
-    this->cloud = c;
+    // move ownership from "c" to "this->cloud"
+    // "c" becomes nullptr
+    this->cloud = std::move(c);
 }
 
 void StampedPointCloud::setOriginTopic(std::string origin) {
