@@ -33,7 +33,6 @@ class StreamManager {
         std::string topicName;
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud = nullptr; // shared pointer to the merged pointcloud
         bool pointCloudSet = false;
-        long long timestamp = -1; // timestamp of the oldest pointcloud in milliseconds
         Eigen::Affine3d sensorTransform; // transform of the sensor frame to the robot base
         bool sensorTransformSet = false; // was the sensor transform set?
         Eigen::Affine3d transformToLastState;
@@ -41,7 +40,7 @@ class StreamManager {
         void computeTransform();
         std::set<StampedPointCloud, CompareStampedPointCloud> clouds;
         std::queue<StampedPointCloud> clouds_not_transformed;
-        time_t max_age;
+        double max_age; // max age of the pointclouds in seconds
 
     public:
         StreamManager(std::string topicName);
@@ -54,24 +53,13 @@ class StreamManager {
         void clearCloud(); // clear the sensor's merged pointcloud
 		void addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr getCloud(); // returning the pointer prevents massive memory copies
-		long long getTimestamp();
-        void setTimestamp(long long t);
         void setSensorTransform(Eigen::Affine3d transform);
 
-        void setMaxAge(time_t max_age);
-        time_t getMaxAge();
+        void setMaxAge(double max_age);
+        double getMaxAge();
 
         void clear(); // clear the stream's pointcloud
 
-};
-
-// custom comparison functor between shared pointers of StreamManagers
-// the comparison is made by timestamp
-struct CompareStreamManager {
-
-    bool operator()(const std::shared_ptr<StreamManager>& first, const std::shared_ptr<StreamManager>& second) const {
-        return first->getTimestamp() < second->getTimestamp();
-    }
 };
 
 #endif

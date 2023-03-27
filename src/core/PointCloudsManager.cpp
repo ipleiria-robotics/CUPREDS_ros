@@ -10,7 +10,7 @@
 
 #include <utility>
 
-PointCloudsManager::PointCloudsManager(size_t n_sources, time_t max_age) {
+PointCloudsManager::PointCloudsManager(size_t n_sources, double max_age) {
 		this->n_sources = n_sources;
 
         // initialize empty merged cloud
@@ -27,24 +27,9 @@ size_t PointCloudsManager::getNClouds() {
 	return this->n_sources;
 }
 
-// remove pointclouds older than the defined max age
-// OBSOLETE
-void PointCloudsManager::clean() {
-	
-    long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
-
-	// this "bound" object is used just for search
-	std::shared_ptr<StreamManager> bound = std::make_shared<StreamManager>("bound");
-	bound->setTimestamp(max_timestamp);
-
-    for(auto iter = this->streamManagers.begin(); iter != this->streamManagers.end(); ++iter)
-        iter->second->clear();
-}
-
 bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
-	// PointCloud alignment with ICP is failing, I suppose due to the lack of superposition
-	// of the tested dataset. Still to be tested
 
+	/*
 	// align the pointclouds
 	pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
 	icp.setInputSource(input);
@@ -55,6 +40,8 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>:
 		*mergedCloud += *input; // if alignment was not possible, just add the pointclouds
 
 	return icp.hasConverged(); // return true if alignment was possible
+	*/
+
 	*this->mergedCloud += *input;
 
 	return false;
@@ -63,9 +50,8 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>:
 void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, const std::string& topicName) {
 
     // the key is not present
-    if (this->streamManagers.count(topicName) == 0) {
-        this->streamManagers[topicName] = std::make_shared<StreamManager>(topicName);
-    }
+    if (this->streamManagers.count(topicName) == 0)
+        this->initStreamManager(topicName, this->max_age);
 
     this->streamManagers[topicName]->addCloud(std::move(cloud));
 
@@ -74,8 +60,13 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, 
 void PointCloudsManager::setTransform(const Eigen::Affine3d& transformEigen, const std::string& topicName) {
 
 	if(this->streamManagers.count(topicName) == 0)
-		this->streamManagers[topicName] = std::make_shared<StreamManager>(topicName);
+		this->initStreamManager(topicName, this->max_age);
 	this->streamManagers[topicName]->setSensorTransform(transformEigen);
+}
+
+void PointCloudsManager::initStreamManager(std::string topicName, double max_age) {
+    this->streamManagers[topicName] = std::make_shared<StreamManager>(topicName);
+    this->streamManagers[topicName]->setMaxAge(max_age);
 }
 
 void PointCloudsManager::clearMergedCloud() {

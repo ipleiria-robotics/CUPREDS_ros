@@ -23,7 +23,7 @@ class PCLRegistrator {
     private:
         std::shared_ptr<PointCloudsManager> manager = nullptr;
         size_t n_sources;
-        time_t max_pointcloud_age;
+        double max_pointcloud_age;
         std::string robotFrame = "base_link";
 		ros::Publisher point_cloud_pub;
         tf2_ros::Buffer tfBuffer;
@@ -31,7 +31,7 @@ class PCLRegistrator {
         void initializeManager();
 
     public:
-        PCLRegistrator(size_t n_sources, time_t max_age);
+        PCLRegistrator(size_t n_sources, double max_age);
         ~PCLRegistrator();
         void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName);
         std::string getRobotFrame();

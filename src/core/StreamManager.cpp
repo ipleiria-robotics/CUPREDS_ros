@@ -13,22 +13,10 @@
 StreamManager::StreamManager(std::string topicName) {
     this->topicName = topicName;
 	this->cloud = pcl::PointCloud<pcl::PointXYZRGB>().makeShared();
-	this->timestamp = -1;
 }
 
 StreamManager::~StreamManager() {
     this->cloud.reset();
-}
-
-// comparators implementation
-// streammanagers are compared by the latest timestamp.
-// they are equal if they refer to the same sensor
-bool StreamManager::operator<(const StreamManager &other) const {
-    return this->timestamp < other.timestamp;
-}
-
-bool StreamManager::operator>(const StreamManager &other) const {
-    return this->timestamp > other.timestamp;
 }
 
 bool StreamManager::operator==(const StreamManager &other) const {
@@ -116,6 +104,17 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 
 	bool firstCloud = true;
 
+	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
+		if(firstCloud) {
+			// copy the first pointcloud to the cloud
+			pcl::copyPointCloud(*it->getPointCloud(), *this->cloud);
+			firstCloud = false;
+			continue;
+		}
+		*this->cloud += *it->getPointCloud();
+	}
+
+	/*
 	// iterate over all pointclouds in the set and do ICP
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
 		if(firstCloud) {
@@ -134,18 +133,10 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 		} catch (std::exception &e) {
 			std::cout << "Error performing sensor-wise ICP: " << e.what() << std::endl;
 		}
-	}
+	}*/
 
 	this->pointCloudSet = true;
 	return this->cloud;
-}
-
-long long StreamManager::getTimestamp() {
-	return this->timestamp;
-}
-
-void StreamManager::setTimestamp(long long t) {
-    this->timestamp = t;
 }
 
 void StreamManager::setSensorTransform(Eigen::Affine3d transform) {
@@ -156,11 +147,11 @@ void StreamManager::setSensorTransform(Eigen::Affine3d transform) {
 	this->computeTransform();
 }
 
-void StreamManager::setMaxAge(time_t max_age) {
+void StreamManager::setMaxAge(double max_age) {
 	this->max_age = max_age;
 }
 
-time_t StreamManager::getMaxAge() {
+double StreamManager::getMaxAge() {
 	return this->max_age;
 }
 
@@ -170,17 +161,14 @@ void StreamManager::clear() {
 
 	// create a comparison object
 	StampedPointCloud spc_comp = StampedPointCloud();
-  	spc_comp.setTimestamp(Utils::getMaxTimestampForAge(this->max_age));
+  	spc_comp.setTimestamp(max_timestamp);
 
-    // the stream timestamp is the timestamp of the oldest pointcloud of the manager
-    this->timestamp = max_timestamp;
-	
-	// remove all pointclouds not meeting the criteria
-	for(auto iter = this->clouds.lower_bound(spc_comp); iter != this->clouds.begin(); iter--) {
-		try {
-			this->clouds.erase(iter);
-		} catch (std::exception &e) {
-			std::cout << "Error removing pointcloud: " << e.what() << std::endl;
-		}
-	}
+      // remove all pointclouds not meeting criteria
+    auto lower = this->clouds.lower_bound(spc_comp);
+    try {
+        this->clouds.erase(this->clouds.begin(), lower);
+    } catch (std::exception &e) {
+        std::cerr << "Error removing pointcloud: " << e.what() << std::endl;
+    }
+
 }

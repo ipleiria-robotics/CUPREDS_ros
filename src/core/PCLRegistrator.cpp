@@ -6,7 +6,7 @@
 */
 #include "PCLRegistrator.h"
 
-PCLRegistrator::PCLRegistrator(size_t n_sources, time_t max_pointcloud_age) {
+PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age) {
     // get the number of sources and maximum pointcloud age
     this->n_sources = n_sources;
     this->max_pointcloud_age = max_pointcloud_age;

@@ -15,6 +15,7 @@
 #include <pcl/common/transforms.h>
 #include <eigen3/Eigen/Dense>
 #include <utility>
+#include <Utils.h>
 
 #define POINTCLOUD_ORIGIN_NONE "NONE"
 
@@ -29,7 +30,7 @@ class StampedPointCloud {
 
     public:
         StampedPointCloud();
-    
+
         unsigned long long getTimestamp();
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloud() const;
         std::string getOriginTopic();

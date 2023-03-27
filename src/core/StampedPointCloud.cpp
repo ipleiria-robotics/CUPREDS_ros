@@ -9,6 +9,7 @@
 #include "StampedPointCloud.h"
 
 StampedPointCloud::StampedPointCloud() {
+    this->timestamp = Utils::getCurrentTimeMillis();
 }
 
 unsigned long long StampedPointCloud::getTimestamp() {

@@ -11,9 +11,9 @@
 
 class Utils {
     public:
-        static long long getCurrentTimeMillis();
-        static long getAgeInSecs(long long timestamp);
-        static long long getMaxTimestampForAge(long age);
+        static unsigned long long getCurrentTimeMillis();
+        static long getAgeInSecs(unsigned long long timestamp);
+        static unsigned long long getMaxTimestampForAge(double age);
 };
 
 #endif

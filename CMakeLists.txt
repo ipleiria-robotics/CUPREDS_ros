@@ -97,6 +97,9 @@ find_package(OpenCV REQUIRED)
 
 set(CMAKE_BUILD_TYPE "Debug")
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -o0")
+
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
 #   cfg/DynReconf1.cfg
