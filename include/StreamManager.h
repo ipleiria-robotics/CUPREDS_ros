@@ -18,6 +18,8 @@
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
 #include <pcl/common/transforms.h>
+#include <pcl/search/impl/kdtree.hpp>
+#include <pcl/kdtree/impl/kdtree_flann.hpp>
 #include <queue>
 #include <eigen3/Eigen/Dense>
 #include <memory>

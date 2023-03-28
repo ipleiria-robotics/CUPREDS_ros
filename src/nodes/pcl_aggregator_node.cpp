@@ -21,7 +21,20 @@
 #define ROBOT_BASE "base_link"
 #define AGGREGATOR_PUBLISH_RATE 10 // Hz
 
+#define NUM_SPINNER_THREADS 16
+
 #define PCL_QUEUES_LEN 1000
+
+void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub, PCLRegistrator *registrator) {
+    sensor_msgs::PointCloud2 ros_cloud;
+
+    // convert the PCL pointcloud to the ROS PointCloud2 format
+	pcl::toROSMsg(registrator->getPointCloud(), ros_cloud);
+	ros_cloud.header.frame_id = registrator->getRobotFrame();
+
+	// publish the PointCloud
+	pub->publish(ros_cloud);
+}
 
 int main(int argc, char **argv) {
 
@@ -38,6 +51,9 @@ int main(int argc, char **argv) {
     nh.param<int>("max_pointcloud_age", max_pointcloud_age, MAX_POINTCLOUD_AGE);
     nh.param<int>("publish_rate", publish_rate, AGGREGATOR_PUBLISH_RATE);
     nh.param<std::string>("robot_base", robot_base, ROBOT_BASE);
+
+	ros::CallbackQueue callback_queue;
+	nh.setCallbackQueue(&callback_queue);
 
     // allocate the subscribers
     std::vector<ros::Subscriber> pcl_subscribers;
@@ -66,22 +82,18 @@ int main(int argc, char **argv) {
 
     ROS_INFO("PointCloud aggregator node started.");
 
-    ros::Rate r = ros::Rate(publish_rate);
+    // create a timer to call the publisher
+    ros::Timer timer = nh.createTimer(ros::Duration(1.0 / publish_rate), boost::bind(&pointcloudPublishCallback, _1, &pub, registrator));
 
-    sensor_msgs::PointCloud2 ros_cloud;
-    while(ros::ok()) {
+    // start the spinner
+	ros::AsyncSpinner spinner(NUM_SPINNER_THREADS, &callback_queue);
+	spinner.start();
 
-        ros::spinOnce();
+    // spin
+    ros::waitForShutdown();
 
-        // convert the PCL pointcloud to the ROS PointCloud2 format
-        pcl::toROSMsg(registrator->getPointCloud(), ros_cloud);
-        ros_cloud.header.frame_id = registrator->getRobotFrame();
-
-        // publish the PointCloud
-        pub.publish(ros_cloud);
- 
-        r.sleep();
-    }
+    // stop the spinner
+	spinner.stop();
 
     delete registrator;
 

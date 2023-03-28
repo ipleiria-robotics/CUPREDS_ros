@@ -107,7 +107,6 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 
 	bool firstCloud = true;
 
-    /*
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
 		if(firstCloud) {
 			// copy the first pointcloud to the cloud
@@ -116,9 +115,10 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 			continue;
 		}
 		*this->cloud += *it->getPointCloud();
-	}*/
+	}
 
 	// iterate over all pointclouds in the set and do ICP
+	/*
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
 		if(firstCloud) {
 			// copy the first pointcloud to the cloud
@@ -141,6 +141,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 			std::cout << "Error performing sensor-wise ICP: " << e.what() << std::endl;
 		}
 	}
+	*/
 
 	this->pointCloudSet = true;
 	return this->cloud;

@@ -33,6 +33,7 @@ size_t PointCloudsManager::getNClouds() {
 bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
 
 	// align the pointclouds
+	/*
 	pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
 	icp.setInputSource(input);
 	icp.setInputTarget(this->mergedCloud); // "input" will align to "merged"
@@ -46,6 +47,7 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>:
 		*mergedCloud += *input; // if alignment was not possible, just add the pointclouds
 
 	return icp.hasConverged(); // return true if alignment was possible
+	*/
 
     // NORMAL CONCATENATION
 	*this->mergedCloud += *input;
