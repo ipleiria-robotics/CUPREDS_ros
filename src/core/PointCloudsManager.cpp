@@ -10,6 +10,9 @@
 
 #include <utility>
 
+#define GLOBAL_ICP_MAX_CORRESPONDENCE_DISTANCE 1
+#define GLOBAL_ICP_MAX_ITERATIONS 1
+
 PointCloudsManager::PointCloudsManager(size_t n_sources, double max_age) {
 		this->n_sources = n_sources;
 
@@ -29,19 +32,22 @@ size_t PointCloudsManager::getNClouds() {
 
 bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
 
-	/*
 	// align the pointclouds
 	pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
 	icp.setInputSource(input);
 	icp.setInputTarget(this->mergedCloud); // "input" will align to "merged"
+
+    icp.setMaxCorrespondenceDistance(GLOBAL_ICP_MAX_CORRESPONDENCE_DISTANCE);
+    icp.setMaximumIterations(GLOBAL_ICP_MAX_ITERATIONS);
+
 	icp.align(*this->mergedCloud); // combine the aligned pointclouds on the "merged" instance
 
 	if(!icp.hasConverged())
 		*mergedCloud += *input; // if alignment was not possible, just add the pointclouds
 
 	return icp.hasConverged(); // return true if alignment was possible
-	*/
 
+    // NORMAL CONCATENATION
 	*this->mergedCloud += *input;
 
 	return false;

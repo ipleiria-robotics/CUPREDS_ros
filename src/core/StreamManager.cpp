@@ -10,6 +10,9 @@
 
 #include <utility>
 
+#define STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE 0.1
+#define STREAM_ICP_MAX_ITERATIONS 10
+
 StreamManager::StreamManager(std::string topicName) {
     this->topicName = topicName;
 	this->cloud = pcl::PointCloud<pcl::PointXYZRGB>().makeShared();
@@ -104,6 +107,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 
 	bool firstCloud = true;
 
+    /*
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
 		if(firstCloud) {
 			// copy the first pointcloud to the cloud
@@ -112,9 +116,8 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 			continue;
 		}
 		*this->cloud += *it->getPointCloud();
-	}
+	}*/
 
-	/*
 	// iterate over all pointclouds in the set and do ICP
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
 		if(firstCloud) {
@@ -128,12 +131,16 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 				continue;
 			icp.setInputSource(it->getPointCloud());
 			icp.setInputTarget(this->cloud);
+
+            icp.setMaxCorrespondenceDistance(STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE);
+            icp.setMaximumIterations(STREAM_ICP_MAX_ITERATIONS);
+
 			icp.align(*this->cloud);
 
 		} catch (std::exception &e) {
 			std::cout << "Error performing sensor-wise ICP: " << e.what() << std::endl;
 		}
-	}*/
+	}
 
 	this->pointCloudSet = true;
 	return this->cloud;
