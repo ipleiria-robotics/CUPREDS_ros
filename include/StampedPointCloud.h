@@ -45,10 +45,10 @@ class StampedPointCloud {
 
 // custom comparison functor between stamped point clouds
 // they are compared by timestamp
-struct CompareStampedPointCloud {
+struct CompareStampedPointCloudPointers {
 
-    bool operator()(StampedPointCloud first, StampedPointCloud second) const {
-        return first.getTimestamp() < second.getTimestamp();
+    bool operator()(std::shared_ptr<StampedPointCloud> first, std::shared_ptr<StampedPointCloud> second) const {
+        return first->getTimestamp() < second->getTimestamp();
     }
 };
 

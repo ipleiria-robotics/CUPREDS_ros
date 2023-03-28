@@ -24,6 +24,7 @@
 #include <eigen3/Eigen/Dense>
 #include <memory>
 #include <thread>
+#include <mutex>
 #include "StampedPointCloud.h"
 #include "Utils.h"
 
@@ -40,9 +41,10 @@ class StreamManager {
         Eigen::Affine3d transformToLastState;
         bool lastStateTransformSet;
         void computeTransform();
-        std::set<StampedPointCloud, CompareStampedPointCloud> clouds;
-        std::queue<StampedPointCloud> clouds_not_transformed;
+        std::set<std::shared_ptr<StampedPointCloud>, CompareStampedPointCloudPointers> clouds;
+        std::queue<std::shared_ptr<StampedPointCloud>> clouds_not_transformed;
         double max_age; // max age of the pointclouds in seconds
+        std::mutex setMutex;
 
     public:
         StreamManager(std::string topicName);
@@ -59,6 +61,8 @@ class StreamManager {
 
         void clear();
 
+    friend void applyTransformRoutine(StreamManager* instance, std::shared_ptr<StampedPointCloud> spcl, Eigen::Affine3d tf);
+    friend void clearPointCloudsRoutine(StreamManager* instance);
 };
 
 #endif

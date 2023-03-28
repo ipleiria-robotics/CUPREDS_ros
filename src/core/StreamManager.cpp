@@ -31,8 +31,8 @@ void StreamManager::computeTransform() {
 	while(this->clouds_not_transformed.size() > 0) {
 		
 		// get the first element
-		StampedPointCloud spcl = this->clouds_not_transformed.front();
-		spcl.applyTransform(this->sensorTransform);
+		std::shared_ptr<StampedPointCloud> spcl = this->clouds_not_transformed.front();
+		spcl->applyTransform(this->sensorTransform);
 
 		// add to the set
 		this->clouds.insert(spcl);
@@ -45,8 +45,9 @@ void StreamManager::computeTransform() {
 }
 
 // this is a routine to call from a thread to transform a pointcloud
-void applyTransformRoutine(StampedPointCloud spcl, Eigen::Affine3d tf) {
-	spcl.applyTransform(tf);
+void applyTransformRoutine(StreamManager *instance, std::shared_ptr<StampedPointCloud> spcl, Eigen::Affine3d tf) {
+    std::lock_guard<std::mutex> guard(instance->setMutex);
+	spcl->applyTransform(tf);
 }
 
 // this is a routine to call from a thread to clear the pointclouds which don't meet the criteria
@@ -57,29 +58,22 @@ void clearPointCloudsRoutine(StreamManager *instance) {
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 
 	// create a stamped point cloud object to keep this pointcloud
-  	StampedPointCloud spcl = StampedPointCloud();
-	spcl.setOriginTopic(this->topicName);
-	spcl.setPointCloud(cloud);
+  	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>();
+	spcl->setOriginTopic(this->topicName);
+	spcl->setPointCloud(cloud);
 
 	if(this->sensorTransformSet) {
 		// transform the incoming pointcloud and add directly to the set
 
-		/*
 		// start a thread to transform the pointcloud
-		std::thread transformationThread(applyTransformRoutine, spcl, sensorTransform);
+		std::thread transformationThread(applyTransformRoutine, this, spcl, sensorTransform);
 
 		// start a thread to clear the pointclouds older than max age
 		std::thread cleaningThread(clearPointCloudsRoutine, this);
-		*/
-
-		// this->clear();
-		spcl.applyTransform(this->sensorTransform);
 
 		// wait for both threads to synchronize
-		/*
 		transformationThread.join();
 		cleaningThread.join();
-		*/
 
 		// add the new pointcloud to the set
 		this->clouds.insert(spcl);
@@ -103,18 +97,18 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 	pcl::IterativeClosestPoint<pcl::PointXYZRGB,pcl::PointXYZRGB> icp;
 
 	// iterator
-	std::set<StampedPointCloud,CompareStampedPointCloud>::iterator it;
+	std::set<std::shared_ptr<StampedPointCloud>,CompareStampedPointCloudPointers>::iterator it;
 
 	bool firstCloud = true;
 
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
 		if(firstCloud) {
 			// copy the first pointcloud to the cloud
-			pcl::copyPointCloud(*it->getPointCloud(), *this->cloud);
+			pcl::copyPointCloud(*(*it)->getPointCloud(), *this->cloud);
 			firstCloud = false;
 			continue;
 		}
-		*this->cloud += *it->getPointCloud();
+		*this->cloud += *(*it)->getPointCloud();
 	}
 
 	// iterate over all pointclouds in the set and do ICP
@@ -168,8 +162,11 @@ void StreamManager::clear() {
   	unsigned long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
 
 	// create a comparison object
-	StampedPointCloud spc_comp = StampedPointCloud();
-  	spc_comp.setTimestamp(max_timestamp);
+	std::shared_ptr<StampedPointCloud> spc_comp = std::make_shared<StampedPointCloud>();
+  	spc_comp->setTimestamp(max_timestamp);
+
+      // lock access to the set
+      std::lock_guard<std::mutex> guard(this->setMutex);
 
       // remove all pointclouds not meeting criteria
     auto lower = this->clouds.lower_bound(spc_comp);
