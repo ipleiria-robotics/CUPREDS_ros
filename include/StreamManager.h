@@ -48,11 +48,8 @@ class StreamManager {
         StreamManager(std::string topicName);
 		~StreamManager();
 
-        bool operator<(const StreamManager& other) const;
-        bool operator>(const StreamManager& other) const;
         bool operator==(const StreamManager& other) const;
-		
-        void clearCloud(); // clear the sensor's merged pointcloud
+
 		void addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr getCloud(); // returning the pointer prevents massive memory copies
         void setSensorTransform(Eigen::Affine3d transform);
@@ -60,7 +57,7 @@ class StreamManager {
         void setMaxAge(double max_age);
         double getMaxAge();
 
-        void clear(); // clear the stream's pointcloud
+        void clear();
 
 };
 
