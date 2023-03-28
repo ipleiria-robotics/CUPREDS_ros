@@ -32,7 +32,7 @@ void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr c) 
     this->cloudSet = true;
     // move ownership from "c" to "this->cloud"
     // "c" becomes nullptr
-    this->cloud = std::move(c);
+    this->cloud = c;
 }
 
 void StampedPointCloud::setOriginTopic(std::string origin) {

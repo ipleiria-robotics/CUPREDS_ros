@@ -45,6 +45,7 @@ class StreamManager {
         std::queue<std::shared_ptr<StampedPointCloud>> clouds_not_transformed;
         double max_age; // max age of the pointclouds in seconds
         std::mutex setMutex;
+        void removePointCloud(std::shared_ptr<StampedPointCloud> spcl);
 
     public:
         StreamManager(std::string topicName);
@@ -63,6 +64,10 @@ class StreamManager {
 
     friend void applyTransformRoutine(StreamManager* instance, std::shared_ptr<StampedPointCloud> spcl, Eigen::Affine3d tf);
     friend void clearPointCloudsRoutine(StreamManager* instance);
+
+    // intended to be called from a thread the moment the StampedPointCloud is created
+    friend void pointCloudAutoRemoveRoutine(StreamManager* instance,
+                                            std::shared_ptr<StampedPointCloud> spcl);
 };
 
 #endif

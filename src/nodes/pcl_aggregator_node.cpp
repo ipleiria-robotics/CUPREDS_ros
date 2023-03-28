@@ -44,11 +44,12 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle nh;
 
-    int n_pointclouds, max_pointcloud_age, publish_rate;
+    int n_pointclouds, publish_rate;
+    double max_pointcloud_age;
     std::string robot_base;
 
     nh.param<int>("n_pointclouds", n_pointclouds, 1);
-    nh.param<int>("max_pointcloud_age", max_pointcloud_age, MAX_POINTCLOUD_AGE);
+    nh.param<double>("max_pointcloud_age", max_pointcloud_age, MAX_POINTCLOUD_AGE);
     nh.param<int>("publish_rate", publish_rate, AGGREGATOR_PUBLISH_RATE);
     nh.param<std::string>("robot_base", robot_base, ROBOT_BASE);
 

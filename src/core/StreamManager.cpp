@@ -26,6 +26,20 @@ bool StreamManager::operator==(const StreamManager &other) const {
     return this->topicName == other.topicName;
 }
 
+void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
+
+    // guard access to the set
+    std::lock_guard<std::mutex> guard(this->setMutex);
+
+    // remove from the set
+    this->clouds.erase(spcl);
+
+    // TODO: remove from the mergedCloud
+
+    // force the pointer deletion
+    spcl.reset();
+}
+
 void StreamManager::computeTransform() {
 
 	while(this->clouds_not_transformed.size() > 0) {
@@ -53,6 +67,16 @@ void applyTransformRoutine(StreamManager *instance, std::shared_ptr<StampedPoint
 // this is a routine to call from a thread to clear the pointclouds which don't meet the criteria
 void clearPointCloudsRoutine(StreamManager *instance) {
 	instance->clear();
+}
+
+void pointCloudAutoRemoveRoutine(StreamManager* instance, std::shared_ptr<StampedPointCloud> spcl) {
+
+    // sleep for the max age
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+            static_cast<long long>(instance->max_age * 1000)));
+
+    // call the pointcloud removal method
+    instance->removePointCloud(spcl);
 }
 
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
@@ -83,6 +107,11 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 		// add the pointcloud to the queue
 		this->clouds_not_transformed.push(spcl);
 	}
+
+    // start the pointcloud recycling thread
+    std::thread spclRecyclingThread(pointCloudAutoRemoveRoutine, this, spcl);
+    // detach from the thread, this execution flow doesn't really care about it
+    spclRecyclingThread.detach();
 }
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
@@ -90,16 +119,19 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 	// clear the old cloud
 	this->cloud->empty();
 
-	// clear the set
-	this->clear();
-
 	// create a icp object
 	pcl::IterativeClosestPoint<pcl::PointXYZRGB,pcl::PointXYZRGB> icp;
 
-	// iterator
-	std::set<std::shared_ptr<StampedPointCloud>,CompareStampedPointCloudPointers>::iterator it;
-
 	bool firstCloud = true;
+
+    // clear the set
+    // this->clear();
+
+    // lock access to the set to iterate it
+    std::lock_guard<std::mutex> guard(this->setMutex);
+
+    // iterator
+    std::set<std::shared_ptr<StampedPointCloud>,CompareStampedPointCloudPointers>::iterator it;
 
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
 		if(firstCloud) {
@@ -176,4 +208,6 @@ void StreamManager::clear() {
         std::cerr << "Error removing pointcloud: " << e.what() << std::endl;
     }
 
+    // remove the comparison pointcloud
+    spc_comp.reset();
 }
