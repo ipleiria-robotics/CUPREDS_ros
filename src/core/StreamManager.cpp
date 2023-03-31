@@ -28,16 +28,7 @@ bool StreamManager::operator==(const StreamManager &other) const {
 
 void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
 
-    // guard access to the set
-    std::lock_guard<std::mutex> guard(this->setMutex);
-
-    // remove from the set
-    this->clouds.erase(spcl);
-
-    // TODO: remove from the mergedCloud
-
-    // force the pointer deletion
-    spcl.reset();
+    // TODO
 }
 
 void StreamManager::computeTransform() {
@@ -79,10 +70,15 @@ void pointCloudAutoRemoveRoutine(StreamManager* instance, std::shared_ptr<Stampe
     instance->removePointCloud(spcl);
 }
 
+void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eigen::Matrix4f tf) {
+
+    spcl->applyIcpTransform(tf);
+}
+
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 
 	// create a stamped point cloud object to keep this pointcloud
-  	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>();
+   	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>();
 	spcl->setOriginTopic(this->topicName);
 	spcl->setPointCloud(cloud);
 
@@ -100,7 +96,53 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 		cleaningThread.join();
 
 		// add the new pointcloud to the set
+        /*
+        int startingIndex = this->clouds.size();
 		this->clouds.insert(spcl);
+        int endingIndex = this->clouds.size();
+
+        // store the indices in the merged cloud
+        for(int i = startingIndex; i < endingIndex; i++) {
+            spcl->addMergedIndex(i);
+        }*/
+
+        // do ICP to the current pointcloud
+        if(!this->pointCloudSet) {
+            // copy the first pointcloud to the cloud
+            pcl::copyPointCloud(*spcl->getPointCloud(), *this->cloud);
+            this->pointCloudSet = true;
+            return;
+        }
+        try {
+            if(spcl->getPointCloud()->empty())
+                return;
+
+            pcl::IterativeClosestPoint<pcl::PointXYZRGB,pcl::PointXYZRGB> icp;
+
+            icp.setInputSource(spcl->getPointCloud());
+            icp.setInputTarget(this->cloud);
+
+            icp.setMaxCorrespondenceDistance(STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE);
+            icp.setMaximumIterations(STREAM_ICP_MAX_ITERATIONS);
+
+            icp.align(*this->cloud);
+
+            if (icp.hasConverged()) {
+
+                /*
+                Eigen::Matrix4f final_transform = icp.getFinalTransformation();
+
+                // transform the source pointcloud to allow later removal by index
+                std::thread icpTransformThread(icpTransformPointCloudRoutine, spcl, final_transform);
+                icpTransformThread.detach();*/
+
+            } else {
+                *this->cloud += *spcl->getPointCloud();
+            }
+
+        } catch (std::exception &e) {
+            std::cout << "Error performing sensor-wise ICP: " << e.what() << std::endl;
+        }
 
 	} else {
 
@@ -116,6 +158,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 
+    /*
 	// clear the old cloud
 	this->cloud->empty();
 
@@ -144,18 +187,17 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 	}
 
 	// iterate over all pointclouds in the set and do ICP
-	/*
 	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
 		if(firstCloud) {
 			// copy the first pointcloud to the cloud
-			pcl::copyPointCloud(*it->getPointCloud(), *this->cloud);
+			pcl::copyPointCloud(*(*it)->getPointCloud(), *this->cloud);
 			firstCloud = false;
 			continue;
 		}
 		try {
-			if(it->getPointCloud()->size() == 0)
+			if((*it)->getPointCloud()->size() == 0)
 				continue;
-			icp.setInputSource(it->getPointCloud());
+			icp.setInputSource((*it)->getPointCloud());
 			icp.setInputTarget(this->cloud);
 
             icp.setMaxCorrespondenceDistance(STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE);
@@ -167,9 +209,9 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
 			std::cout << "Error performing sensor-wise ICP: " << e.what() << std::endl;
 		}
 	}
-	*/
 
 	this->pointCloudSet = true;
+    */
 	return this->cloud;
 }
 

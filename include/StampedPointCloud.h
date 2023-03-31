@@ -15,6 +15,8 @@
 #include <pcl/common/transforms.h>
 #include <eigen3/Eigen/Dense>
 #include <utility>
+#include <thread>
+#include <mutex>
 #include <Utils.h>
 
 #define POINTCLOUD_ORIGIN_NONE "NONE"
@@ -28,12 +30,15 @@ class StampedPointCloud {
         bool transformComputed = false;
         std::string originTopic = POINTCLOUD_ORIGIN_NONE;
 
+        bool icpTransformComputed = false;
+
     public:
         StampedPointCloud();
 
         unsigned long long getTimestamp();
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloud() const;
         std::string getOriginTopic();
+        bool isIcpTransformComputed();
 
         void setTimestamp(unsigned long long t);
         void setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
@@ -41,6 +46,12 @@ class StampedPointCloud {
 
         bool isTransformComputed() const;
         void applyTransform(Eigen::Affine3d tf);
+
+        void applyIcpTransform(Eigen::Matrix4f tf);
+
+    friend void transformPointCloudRoutine(StampedPointCloud* instance);
+
+
 };
 
 // custom comparison functor between stamped point clouds

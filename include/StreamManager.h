@@ -68,6 +68,9 @@ class StreamManager {
     // intended to be called from a thread the moment the StampedPointCloud is created
     friend void pointCloudAutoRemoveRoutine(StreamManager* instance,
                                             std::shared_ptr<StampedPointCloud> spcl);
+
+    friend void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eigen::Matrix4f tf);
+
 };
 
 #endif

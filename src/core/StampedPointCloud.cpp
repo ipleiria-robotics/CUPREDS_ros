@@ -24,6 +24,10 @@ std::string StampedPointCloud::getOriginTopic() {
     return this->originTopic;
 }
 
+bool StampedPointCloud::isIcpTransformComputed() {
+    return icpTransformComputed;
+}
+
 void StampedPointCloud::setTimestamp(unsigned long long t) {
     this->timestamp = t;
 }
@@ -49,5 +53,18 @@ void StampedPointCloud::applyTransform(Eigen::Affine3d tf) {
     if(this->cloudSet) {
         pcl::transformPointCloud(*this->cloud, *this->cloud, tf);
         this->transformComputed = true;
+    }
+}
+
+void StampedPointCloud::applyIcpTransform(Eigen::Matrix4f tf) {
+
+    if(!icpTransformComputed) {
+
+        Eigen::Matrix4d mat4d = tf.cast<double>();
+        Eigen::Affine3d affine(mat4d);
+
+        this->applyTransform(affine);
+
+        this->icpTransformComputed = true;
     }
 }
