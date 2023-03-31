@@ -17,6 +17,9 @@
 #include <utility>
 #include <thread>
 #include <mutex>
+#include <cstdint>
+#include <string>
+#include <functional>
 #include <Utils.h>
 
 #define POINTCLOUD_ORIGIN_NONE "NONE"
@@ -29,15 +32,18 @@ class StampedPointCloud {
         bool cloudSet = false;
         bool transformComputed = false;
         std::string originTopic = POINTCLOUD_ORIGIN_NONE;
+        std::uint32_t label; // pointcloud label to allow removal
+        std::uint32_t generateLabel();
 
         bool icpTransformComputed = false;
 
     public:
-        StampedPointCloud();
+        StampedPointCloud(std::string originTopic);
 
         unsigned long long getTimestamp();
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloud() const;
         std::string getOriginTopic();
+        std::uint32_t getLabel();
         bool isIcpTransformComputed();
 
         void setTimestamp(unsigned long long t);
@@ -50,7 +56,6 @@ class StampedPointCloud {
         void applyIcpTransform(Eigen::Matrix4f tf);
 
     friend void transformPointCloudRoutine(StampedPointCloud* instance);
-
 
 };
 

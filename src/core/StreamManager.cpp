@@ -78,8 +78,7 @@ void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eige
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
 
 	// create a stamped point cloud object to keep this pointcloud
-   	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>();
-	spcl->setOriginTopic(this->topicName);
+   	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>(this->topicName);
 	spcl->setPointCloud(cloud);
 
 	if(this->sensorTransformSet) {
@@ -236,7 +235,7 @@ void StreamManager::clear() {
   	unsigned long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
 
 	// create a comparison object
-	std::shared_ptr<StampedPointCloud> spc_comp = std::make_shared<StampedPointCloud>();
+	std::shared_ptr<StampedPointCloud> spc_comp = std::make_shared<StampedPointCloud>(this->topicName);
   	spc_comp->setTimestamp(max_timestamp);
 
       // lock access to the set

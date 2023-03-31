@@ -8,8 +8,22 @@
 
 #include "StampedPointCloud.h"
 
-StampedPointCloud::StampedPointCloud() {
+StampedPointCloud::StampedPointCloud(std::string originTopic) {
     this->timestamp = Utils::getCurrentTimeMillis();
+
+    this->setOriginTopic(originTopic);
+
+    this->label = generateLabel();
+}
+
+std::uint32_t StampedPointCloud::generateLabel() {
+
+    std::string combined = this->originTopic + std::to_string(this->timestamp);
+
+    std::hash<std::string> hasher;
+    std::uint32_t hash_value = hasher(combined);
+
+    return hash_value;
 }
 
 unsigned long long StampedPointCloud::getTimestamp() {
@@ -22,6 +36,10 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr StampedPointCloud::getPointCloud() const 
 
 std::string StampedPointCloud::getOriginTopic() {
     return this->originTopic;
+}
+
+std::uint32_t StampedPointCloud::getLabel() {
+    return this->label;
 }
 
 bool StampedPointCloud::isIcpTransformComputed() {
