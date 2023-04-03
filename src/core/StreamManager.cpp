@@ -28,7 +28,14 @@ bool StreamManager::operator==(const StreamManager &other) const {
 
 void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
 
-    // TODO
+    // lock the set
+    std::lock_guard<std::mutex> guard(this->setMutex);
+
+    // iterate the set and remote the points with the label of the pointcloud
+    for(auto it = this->clouds.begin(); it != this->clouds.end(); it++) {
+        if((*it)->getLabel() == spcl->getLabel())
+            this->clouds.erase(it);
+    }
 }
 
 void StreamManager::computeTransform() {
