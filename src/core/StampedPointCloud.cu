@@ -86,7 +86,7 @@ void StampedPointCloud::assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGB
     // call the kernel
     dim3 block(512);
     dim3 grid((cloud->size() + block.x - 1) / block.x);
-    setPointLabelKernel<<<grid,block,stream>>>(d_cloud, label, cloud->size());
+    setPointLabelKernel<<<grid,block,0,stream>>>(d_cloud, label, cloud->size());
 
     // wait for the stream
     if((err = cudaStreamSynchronize(stream)) != cudaSuccess) {
