@@ -60,9 +60,16 @@ void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c,
 
 void StampedPointCloud::assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label) {
     cudaError_t err = cudaSuccess;
+    cudaStream_t stream;
 
     // declare the device input point array
     pcl::PointXYZRGBL *d_cloud;
+
+    // create a stream
+    if((err = cudaStreamCreate(&stream)) != cudaSuccess) {
+        std::cerr << "Error creating the CUDA stream: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
 
     // allocate memory on the device to store the input pointcloud
     if((err = cudaMalloc(&d_cloud, cloud->size() * sizeof(pcl::PointXYZRGBL))) != cudaSuccess) {
@@ -79,17 +86,23 @@ void StampedPointCloud::assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGB
     // call the kernel
     dim3 block(512);
     dim3 grid((cloud->size() + block.x - 1) / block.x);
-    setPointLabelKernel<<<grid,block>>>(d_cloud, label, cloud->size());
+    setPointLabelKernel<<<grid,block,stream>>>(d_cloud, label, cloud->size());
 
-    // wait for the device
-    if((err = cudaDeviceSynchronize()) != cudaSuccess) {
-        std::cerr << "Error waiting for the device: " << cudaGetErrorString(err) << std::endl;
+    // wait for the stream
+    if((err = cudaStreamSynchronize(stream)) != cudaSuccess) {
+        std::cerr << "Error waiting for the stream: " << cudaGetErrorString(err) << std::endl;
         return;
     }
 
     // copy the output pointcloud back to the host
     if((err = cudaMemcpy(cloud->points.data(), d_cloud, cloud->size() * sizeof(pcl::PointXYZRGBL), cudaMemcpyDeviceToHost)) != cudaSuccess) {
         std::cerr << "Error copying the output pointcloud to the host: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    // destroy the stream
+    if((err = cudaStreamDestroy(stream)) != cudaSuccess) {
+        std::cerr << "Error destroying the CUDA stream: " << cudaGetErrorString(err) << std::endl;
         return;
     }
 }
