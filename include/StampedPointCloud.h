@@ -49,7 +49,7 @@ class StampedPointCloud {
         bool isIcpTransformComputed();
 
         void setTimestamp(unsigned long long t);
-        void setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud);
+        void setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, bool assignGeneratedLabel=true);
         void setOriginTopic(std::string origin);
 
         bool isTransformComputed() const;

@@ -50,7 +50,7 @@ void StampedPointCloud::setTimestamp(unsigned long long t) {
     this->timestamp = t;
 }
 
-void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c, std::bool assignGeneratedLabel=true) {
+void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c, bool assignGeneratedLabel) {
     this->cloudSet = true;
     this->cloud = c;
 
