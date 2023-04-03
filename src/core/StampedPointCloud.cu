@@ -52,16 +52,38 @@ void StampedPointCloud::setTimestamp(unsigned long long t) {
 
 void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c) {
     this->cloudSet = true;
-    // move ownership from "c" to "this->cloud"
-    // "c" becomes nullptr
     this->cloud = c;
 
-    // use multi-threading to assign the label to each point
-    // if each thread is assigned to a point, no race conditions should happen
-    // could be more optimized with CUDA
-    #pragma omp parallel for
-    for(size_t i = 0; i < this->cloud->size(); i++) {
-        // this->cloud[i].label = this->label;
+    this->assignLabelToPointCloud(this->cloud, this->label);
+}
+
+void StampedPointCloud::assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label) {
+    cudaError_t err = cudaSuccess;
+
+    // declare the device input point array
+    pcl::PointXYZRGBL *d_cloud;
+
+    // allocate memory on the device to store the input pointcloud
+    if((err = cudaMalloc(&d_cloud, cloud->size() * sizeof(pcl::PointXYZRGBL))) != cudaSuccess) {
+        std::cerr << "Error allocating memory for the pointcloud: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    // copy the input pointcloud to the device
+    if((err = cudaMemcpy(d_cloud, cloud->points.data(), cloud->size() * sizeof(pcl::PointXYZRGBL), cudaMemcpyHostToDevice)) != cudaSuccess) {
+        std::cerr << "Error copying the input pointcloud to the device: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    // call the kernel
+    dim3 block(512);
+    dim3 grid((cloud->size() + block.x - 1) / block.x);
+    setPointLabelKernel<<<grid,block>>>(d_cloud, label, cloud->size());
+
+    // copy the output pointcloud back to the host
+    if((err = cudaMemcpy(cloud->points.data(), d_cloud, cloud->size() * sizeof(pcl::PointXYZRGBL), cudaMemcpyDeviceToHost)) != cudaSuccess) {
+        std::cerr << "Error copying the output pointcloud to the host: " << cudaGetErrorString(err) << std::endl;
+        return;
     }
 }
 

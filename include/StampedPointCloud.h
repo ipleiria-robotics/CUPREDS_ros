@@ -20,7 +20,9 @@
 #include <cstdint>
 #include <string>
 #include <functional>
+#include <cuda_runtime.h>
 #include <Utils.h>
+#include <cuda_pointclouds.h>
 
 #define POINTCLOUD_ORIGIN_NONE "NONE"
 
@@ -34,6 +36,7 @@ class StampedPointCloud {
         std::string originTopic = POINTCLOUD_ORIGIN_NONE;
         std::uint32_t label; // pointcloud label to allow removal
         std::uint32_t generateLabel();
+        void assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label);
 
         bool icpTransformComputed = false;
 
