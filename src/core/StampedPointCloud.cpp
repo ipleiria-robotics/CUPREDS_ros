@@ -61,7 +61,7 @@ void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c)
     // could be more optimized with CUDA
     #pragma omp parallel for
     for(size_t i = 0; i < this->cloud->size(); i++) {
-        this->cloud[i].label = this->label;
+        // this->cloud[i].label = this->label;
     }
 }
 
