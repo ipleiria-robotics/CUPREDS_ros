@@ -15,7 +15,7 @@
 
 StreamManager::StreamManager(std::string topicName) {
     this->topicName = topicName;
-	this->cloud = pcl::PointCloud<pcl::PointXYZRGB>().makeShared();
+	this->cloud = pcl::PointCloud<pcl::PointXYZRGBL>().makeShared();
 }
 
 StreamManager::~StreamManager() {
@@ -75,7 +75,7 @@ void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eige
     spcl->applyIcpTransform(tf);
 }
 
-void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
+void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 
 	// create a stamped point cloud object to keep this pointcloud
    	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>(this->topicName);
@@ -116,7 +116,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
             if(spcl->getPointCloud()->empty())
                 return;
 
-            pcl::IterativeClosestPoint<pcl::PointXYZRGB,pcl::PointXYZRGB> icp;
+            pcl::IterativeClosestPoint<pcl::PointXYZRGBL,pcl::PointXYZRGBL> icp;
 
             icp.setInputSource(spcl->getPointCloud());
             icp.setInputTarget(this->cloud);
@@ -155,7 +155,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
     spclRecyclingThread.detach();
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
+pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StreamManager::getCloud() {
 
     /*
 	// clear the old cloud

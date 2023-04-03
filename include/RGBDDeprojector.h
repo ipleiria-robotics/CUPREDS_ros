@@ -33,7 +33,7 @@ class RGBDDeprojector {
     private:
         Eigen::Matrix<double, 3, 3> K;
         std::string camera_frame_id;
-        pcl::PointCloud<pcl::PointXYZRGB> cloud;
+        pcl::PointCloud<pcl::PointXYZRGBL> cloud;
         std::shared_ptr<ros::Publisher> point_cloud_pub = nullptr;
         cv::Mat last_color_image;
 		cv::Mat last_depth_image;

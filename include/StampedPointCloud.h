@@ -28,7 +28,7 @@ class StampedPointCloud {
 
     private:
         unsigned long long timestamp;
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud;
+        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud;
         bool cloudSet = false;
         bool transformComputed = false;
         std::string originTopic = POINTCLOUD_ORIGIN_NONE;
@@ -41,13 +41,13 @@ class StampedPointCloud {
         StampedPointCloud(std::string originTopic);
 
         unsigned long long getTimestamp();
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloud() const;
+        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr getPointCloud() const;
         std::string getOriginTopic();
         std::uint32_t getLabel();
         bool isIcpTransformComputed();
 
         void setTimestamp(unsigned long long t);
-        void setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+        void setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud);
         void setOriginTopic(std::string origin);
 
         bool isTransformComputed() const;

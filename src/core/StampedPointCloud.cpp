@@ -30,7 +30,7 @@ unsigned long long StampedPointCloud::getTimestamp() {
     return this->timestamp;
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr StampedPointCloud::getPointCloud() const {
+pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StampedPointCloud::getPointCloud() const {
     return this->cloud;
 }
 
@@ -50,11 +50,19 @@ void StampedPointCloud::setTimestamp(unsigned long long t) {
     this->timestamp = t;
 }
 
-void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr c) {
+void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c) {
     this->cloudSet = true;
     // move ownership from "c" to "this->cloud"
     // "c" becomes nullptr
     this->cloud = c;
+
+    // use multi-threading to assign the label to each point
+    // if each thread is assigned to a point, no race conditions should happen
+    // could be more optimized with CUDA
+    #pragma omp parallel for
+    for(size_t i = 0; i < this->cloud->size(); i++) {
+        this->cloud[i].label = this->label;
+    }
 }
 
 void StampedPointCloud::setOriginTopic(std::string origin) {
