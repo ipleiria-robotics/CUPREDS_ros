@@ -13,6 +13,7 @@
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/PointCloud2.h"
 #include "sensor_msgs/image_encodings.h"
+#include "cuda_rgbd.h"
 #include <cv_bridge/cv_bridge.h>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Core>
@@ -27,6 +28,7 @@
 #include <cerrno>
 #include <sys/time.h>
 #include <memory>
+#include <cuda_runtime.h>
 
 class RGBDDeprojector {
 
