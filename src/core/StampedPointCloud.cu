@@ -81,6 +81,12 @@ void StampedPointCloud::assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGB
     dim3 grid((cloud->size() + block.x - 1) / block.x);
     setPointLabelKernel<<<grid,block>>>(d_cloud, label, cloud->size());
 
+    // wait for the device
+    if((err = cudaDeviceSynchronize()) != cudaSuccess) {
+        std::cerr << "Error waiting for the device: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
     // copy the output pointcloud back to the host
     if((err = cudaMemcpy(cloud->points.data(), d_cloud, cloud->size() * sizeof(pcl::PointXYZRGBL), cudaMemcpyDeviceToHost)) != cudaSuccess) {
         std::cerr << "Error copying the output pointcloud to the host: " << cudaGetErrorString(err) << std::endl;
