@@ -36,7 +36,6 @@ class StampedPointCloud {
         std::string originTopic = POINTCLOUD_ORIGIN_NONE;
         std::uint32_t label; // pointcloud label to allow removal
         std::uint32_t generateLabel();
-        void assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label);
 
         bool icpTransformComputed = false;
 
@@ -57,6 +56,8 @@ class StampedPointCloud {
         void applyTransform(Eigen::Affine3d tf);
 
         void applyIcpTransform(Eigen::Matrix4f tf);
+
+        void assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label);
 
     friend void transformPointCloudRoutine(StampedPointCloud* instance);
 
