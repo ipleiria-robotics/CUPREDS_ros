@@ -143,7 +143,7 @@ void StampedPointCloud::applyTransform(Eigen::Affine3d tf) {
         // call the kernel
         dim3 block(512);
         dim3 grid((this->cloud->size() + block.x - 1) / block.x);
-        transformPointcloudKernel<<<grid,block,0,stream>>>(d_cloud, tf.matrix(), this->cloud->size());
+        transformPointKernel<<<grid,block,0,stream>>>(d_cloud, tf.matrix(), this->cloud->size());
 
         // wait for the stream
         if((err = cudaStreamSynchronize(stream)) != cudaSuccess) {
