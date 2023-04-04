@@ -7,10 +7,10 @@ __global__ void setPointLabelKernel(pcl::PointXYZRGBL *points, std::uint32_t lab
     }
 }
 
-__global__ void transformPointKernel(pcl::PointXYZRGBL *points, Eigen::Matrix4f transform, int num_points) {
+__global__ void transformPointKernel(pcl::PointXYZRGBL *points, Eigen::Matrix4d transform, int num_points) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < num_points) {
-        Eigen::Vector4f p(points[idx].x, points[idx].y, points[idx].z, 1.0f);
+        Eigen::Vector4d p(points[idx].x, points[idx].y, points[idx].z, 1.0f);
         p = transform * p;
         points[idx].x = p(0);
         points[idx].y = p(1);
