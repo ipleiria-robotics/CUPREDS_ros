@@ -72,54 +72,17 @@ void RGBDDeprojector::depthImageCallback(const sensor_msgs::Image::ConstPtr& msg
 
 	this->last_depth_image = depth_image;
 
-	// convert the eigen intrinsic matrix to an opencv matrix
-	cv::Mat K_cv;
-	cv::eigen2cv(this->K, K_cv);	
+	// clear the current pointcloud
+	this->cloud.clear();
 
-    // clear the point cloud before filling
-    this->cloud.clear();
-
-	// use opencv to reproject the points from the depth image and intrinsics to a cv mat
-	cv::Mat points_cv;
-	cv::reprojectImageTo3D(depth_image, points_cv, K_cv);
-
-	// convert the opencv matrix into a pcl pointcloud
-	this->cloud.width = points_cv.cols;
-	this->cloud.height = points_cv.rows;
-	this->cloud.points.resize(points_cv.total());
-	
-	// TODO: this is EXTREMELY processor intensive and slow, should do with CUDA instead
-	// at least use some kind of thread pool
-	for(int i = 0; i < points_cv.rows; i++) {
-			for(int j = 0; j < points_cv.cols; j++) {
-					pcl::PointXYZRGBL& point = this->cloud.points[i * points_cv.cols + j];
-					cv::Vec3f& vec = points_cv.at<cv::Vec3f>(i,j); // get depth pixel
-					cv::Vec3b color = this->last_color_image.at<cv::Vec3b>(point.y, point.x);
-					
-					// copy the position
-					point.x = vec[0];
-					point.y = vec[1];
-					point.z = vec[2];
-					
-					// copy the color
-					point.r = color[2];
-					point.g = color[1];
-					point.b = color[0];
-					
-			}
-	}
-
-
-    // get the deprojection end time
-    if(gettimeofday(&end, NULL)) {
-        ROS_ERROR("Error getting deprojection end time: %s", strerror(errno));
-        return;
-    }
-
-    // compute the total deprojection duration in ms
-    float deprojection_duration = (end.tv_usec - start.tv_usec) / 1000.0;
-
-    // ROS_INFO("Deprojection duration: %f ms", deprojection_duration);
+    // TODO
+    // convert depth image to raw pointer
+    // convert color image to raw pointer
+    // allocate memory for the depth image
+    // allocate memory for the color image
+    // allocate memory for the point cloud
+    // call the deprojection kernel
+    // free the memory
 
     // check if a publisher was given
     if(this->point_cloud_pub == nullptr) {
