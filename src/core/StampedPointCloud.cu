@@ -119,7 +119,51 @@ void StampedPointCloud::applyTransform(Eigen::Affine3d tf) {
     // TODO: transform the pointcloud. have in mind they are smart pointers, 
     // attention to performance issues
     if(this->cloudSet) {
-        pcl::transformPointCloud(*this->cloud, *this->cloud, tf);
+        cudaError_t err = cudaSuccess;
+        cudaStream_t stream;
+
+        if((err = cudaStreamCreate(&stream)) != cudaSuccess) {
+            std::cerr << "Error creating pointcloud transform stream: " << cudaGetErrorString(err) << std::endl;
+            return;
+        }
+
+        // allocate device memory for the pointcloud
+        pcl::PointXYZRGBL *d_cloud;
+        if((err = cudaMalloc(&d_cloud, this->cloud->size() * sizeof(pcl::PointXYZRGBL))) != cudaSuccess) {
+            std::cerr << "Error allocating memory for the pointcloud: " << cudaGetErrorString(err) << std::endl;
+            return;
+        }
+
+        // copy the pointcloud to the device
+        if((err = cudaMemcpy(d_cloud, this->cloud->points.data(), this->cloud->size() * sizeof(pcl::PointXYZRGBL), cudaMemcpyHostToDevice)) != cudaSuccess) {
+            std::cerr << "Error copying the input pointcloud to the device: " << cudaGetErrorString(err) << std::endl;
+            return;
+        }
+
+        // call the kernel
+        dim3 block(512);
+        dim3 grid((this->cloud->size() + block.x - 1) / block.x);
+        transformPointKernel<<<grid,block,0,stream>>>(d_cloud, tf.matrix(), this->cloud->size());
+
+        // wait for the stream
+        if((err = cudaStreamSynchronize(stream)) != cudaSuccess) {
+            std::cerr << "Error waiting for the stream: " << cudaGetErrorString(err) << std::endl;
+            return;
+        }
+
+        // copy the output pointcloud back to the host
+        if((err = cudaMemcpy(this->cloud->points.data(), d_cloud, this->cloud->size() * sizeof(pcl::PointXYZRGBL), cudaMemcpyDeviceToHost)) != cudaSuccess) {
+            std::cerr << "Error copying the output pointcloud to the host: " << cudaGetErrorString(err) << std::endl;
+            return;
+        }
+
+        // destroy the stream
+        if((err = cudaStreamDestroy(stream)) != cudaSuccess) {
+            std::cerr << "Error destroying the CUDA stream: " << cudaGetErrorString(err) << std::endl;
+            return;
+        }
+
+        // pcl::transformPointCloud(*this->cloud, *this->cloud, tf);
         this->transformComputed = true;
     }
 }
