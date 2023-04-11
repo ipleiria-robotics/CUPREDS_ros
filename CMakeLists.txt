@@ -94,6 +94,7 @@ if (OPENMP_FOUND)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 find_package(OpenCV REQUIRED)
+find_package(CUDA REQUIRED)
 
 set(CMAKE_BUILD_TYPE "Debug")
 
@@ -155,7 +156,7 @@ ${CUDA_INCLUDE_DIRS}
 set(CORE_SOURCE_DIR include)
 
 # compile the RGBDDeprojector class with nvcc, because we are calling a cuda kernel
-add_library(RGBDDeprojector STATIC src/core/RGBDDeprojector.cpp)
+add_library(RGBDDeprojector STATIC src/core/RGBDDeprojector.cu)
 add_library(PCLRegistrator STATIC src/core/PCLRegistrator.cpp)
 add_library(StampedPointCloud STATIC src/core/StampedPointCloud.cpp)
 add_library(StreamManager STATIC src/core/StreamManager.cpp)
