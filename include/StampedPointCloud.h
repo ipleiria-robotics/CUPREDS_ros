@@ -59,7 +59,10 @@ class StampedPointCloud {
 
         void assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label);
 
+        void removePointsWithLabel(std::uint32_t label);
+
     friend void transformPointCloudRoutine(StampedPointCloud* instance);
+    friend void removePointsWithLabelRoutine(StampedPointCloud* instance, std::uint32_t label);
 
 };
 

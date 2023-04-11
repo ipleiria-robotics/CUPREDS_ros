@@ -15,7 +15,7 @@
 
 StreamManager::StreamManager(std::string topicName) {
     this->topicName = topicName;
-	this->cloud = pcl::PointCloud<pcl::PointXYZRGBL>().makeShared();
+    this->cloud = std::make_shared<StampedPointCloud>("none");
 }
 
 StreamManager::~StreamManager() {
@@ -31,10 +31,14 @@ void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
     // lock the set
     std::lock_guard<std::mutex> guard(this->setMutex);
 
-    // iterate the set and remote the points with the label of the pointcloud
+    // iterate the set
     for(auto it = this->clouds.begin(); it != this->clouds.end(); it++) {
-        if((*it)->getLabel() == spcl->getLabel())
+        if((*it)->getLabel() == spcl->getLabel()) {
+            // remove points with that label from the merged pointcloud
+            this->cloud->removePointsWithLabel(spcl->getLabel());
+            // remove the pointcloud from the set
             this->clouds.erase(it);
+        }
     }
 }
 
@@ -67,6 +71,9 @@ void clearPointCloudsRoutine(StreamManager *instance) {
 	instance->clear();
 }
 
+// this routine is called in a thread
+// this allow to automatically remove the pointclouds which are older than the max age
+// as well as the removal is lazy, so it doesn't lock the main thread
 void pointCloudAutoRemoveRoutine(StreamManager* instance, std::shared_ptr<StampedPointCloud> spcl) {
 
     // sleep for the max age
@@ -115,7 +122,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
         // do ICP to the current pointcloud
         if(!this->pointCloudSet) {
             // copy the first pointcloud to the cloud
-            pcl::copyPointCloud(*spcl->getPointCloud(), *this->cloud);
+            pcl::copyPointCloud(*spcl->getPointCloud(), *this->cloud->getPointCloud());
             this->pointCloudSet = true;
             return;
         }
@@ -126,12 +133,12 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
             pcl::IterativeClosestPoint<pcl::PointXYZRGBL,pcl::PointXYZRGBL> icp;
 
             icp.setInputSource(spcl->getPointCloud());
-            icp.setInputTarget(this->cloud);
+            icp.setInputTarget(this->cloud->getPointCloud());
 
             icp.setMaxCorrespondenceDistance(STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE);
             icp.setMaximumIterations(STREAM_ICP_MAX_ITERATIONS);
 
-            icp.align(*this->cloud);
+            icp.align(*this->cloud->getPointCloud());
 
             if (icp.hasConverged()) {
 
@@ -143,7 +150,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
                 icpTransformThread.detach();*/
 
             } else {
-                *this->cloud += *spcl->getPointCloud();
+                *this->cloud->getPointCloud() += *spcl->getPointCloud();
             }
 
         } catch (std::exception &e) {
@@ -218,7 +225,7 @@ pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StreamManager::getCloud() {
 
 	this->pointCloudSet = true;
     */
-	return this->cloud;
+	return this->cloud->getPointCloud();
 }
 
 void StreamManager::setSensorTransform(Eigen::Affine3d transform) {

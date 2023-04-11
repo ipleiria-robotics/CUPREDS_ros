@@ -14,6 +14,8 @@ StampedPointCloud::StampedPointCloud(std::string originTopic) {
     this->setOriginTopic(originTopic);
 
     this->label = generateLabel();
+
+    this->cloud = pcl::PointCloud<pcl::PointXYZRGBL>().makeShared();
 }
 
 std::uint32_t StampedPointCloud::generateLabel() {
@@ -178,5 +180,14 @@ void StampedPointCloud::applyIcpTransform(Eigen::Matrix4f tf) {
         this->applyTransform(affine);
 
         this->icpTransformComputed = true;
+    }
+}
+
+void StampedPointCloud::removePointsWithLabel(std::uint32_t label) {
+
+    for(auto it = this->cloud->begin(); it != this->cloud->end(); it++) {
+        if(it->label == label) {
+            this->cloud->erase(it);
+        }
     }
 }
