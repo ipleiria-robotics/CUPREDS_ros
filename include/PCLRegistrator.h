@@ -37,7 +37,7 @@ class PCLRegistrator {
         std::string getRobotFrame();
         void setRobotFrame(std::string robotFrame);
         void setPublisher(ros::Publisher point_cloud_pub);
-        pcl::PointCloud<pcl::PointXYZRGB> getPointCloud();
+        pcl::PointCloud<pcl::PointXYZRGBL> getPointCloud();
 };
 
 #endif

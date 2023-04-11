@@ -34,7 +34,7 @@
 class StreamManager {
     private:
         std::string topicName;
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud = nullptr; // shared pointer to the merged pointcloud
+        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud = nullptr; // shared pointer to the merged pointcloud
         bool pointCloudSet = false;
         Eigen::Affine3d sensorTransform; // transform of the sensor frame to the robot base
         bool sensorTransformSet = false; // was the sensor transform set?
@@ -53,8 +53,8 @@ class StreamManager {
 
         bool operator==(const StreamManager& other) const;
 
-		void addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr getCloud(); // returning the pointer prevents massive memory copies
+		void addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud);
+		pcl::PointCloud<pcl::PointXYZRGBL>::Ptr getCloud(); // returning the pointer prevents massive memory copies
         void setSensorTransform(Eigen::Affine3d transform);
 
         void setMaxAge(double max_age);

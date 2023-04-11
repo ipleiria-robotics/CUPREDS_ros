@@ -17,7 +17,7 @@ PointCloudsManager::PointCloudsManager(size_t n_sources, double max_age) {
 		this->n_sources = n_sources;
 
         // initialize empty merged cloud
-        this->mergedCloud = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>());
+        this->mergedCloud = pcl::PointCloud<pcl::PointXYZRGBL>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBL>());
 
 		this->max_age = max_age;
 }
@@ -30,11 +30,11 @@ size_t PointCloudsManager::getNClouds() {
 	return this->n_sources;
 }
 
-bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr& input) {
+bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& input) {
 
 	// align the pointclouds
     if(!input->empty()) {
-        pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
+        pcl::IterativeClosestPoint<pcl::PointXYZRGBL, pcl::PointXYZRGBL> icp;
         icp.setInputSource(input);
         icp.setInputTarget(this->mergedCloud); // "input" will align to "merged"
 
@@ -55,7 +55,7 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGB>:
 	return false;
 }
 
-void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, const std::string& topicName) {
+void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, const std::string& topicName) {
 
     // the key is not present
     if (this->streamManagers.count(topicName) == 0)
@@ -87,13 +87,13 @@ void PointCloudsManager::clearMergedCloud() {
 void PointCloudsManager::downsampleMergedCloud() {
 	
 	// create a downsampler instance
-	pcl::VoxelGrid<pcl::PointXYZRGB> downsampler;
+	pcl::VoxelGrid<pcl::PointXYZRGBL> downsampler;
 	downsampler.setInputCloud(this->mergedCloud);
 	downsampler.setLeafSize(FILTER_VOXEL_SIZE, FILTER_VOXEL_SIZE, FILTER_VOXEL_SIZE);
 	downsampler.filter(*this->mergedCloud); // replace with the downsampled cloud
 }
 
-pcl::PointCloud<pcl::PointXYZRGB> PointCloudsManager::getMergedCloud() {
+pcl::PointCloud<pcl::PointXYZRGBL> PointCloudsManager::getMergedCloud() {
 
 	// clear the old merged cloud
 	this->clearMergedCloud();

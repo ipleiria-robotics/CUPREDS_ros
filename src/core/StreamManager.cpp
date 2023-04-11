@@ -15,7 +15,7 @@
 
 StreamManager::StreamManager(std::string topicName) {
     this->topicName = topicName;
-	this->cloud = pcl::PointCloud<pcl::PointXYZRGB>().makeShared();
+	this->cloud = pcl::PointCloud<pcl::PointXYZRGBL>().makeShared();
 }
 
 StreamManager::~StreamManager() {
@@ -28,7 +28,14 @@ bool StreamManager::operator==(const StreamManager &other) const {
 
 void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
 
-    // TODO
+    // lock the set
+    std::lock_guard<std::mutex> guard(this->setMutex);
+
+    // iterate the set and remote the points with the label of the pointcloud
+    for(auto it = this->clouds.begin(); it != this->clouds.end(); it++) {
+        if((*it)->getLabel() == spcl->getLabel())
+            this->clouds.erase(it);
+    }
 }
 
 void StreamManager::computeTransform() {
@@ -75,11 +82,10 @@ void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eige
     spcl->applyIcpTransform(tf);
 }
 
-void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
+void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 
 	// create a stamped point cloud object to keep this pointcloud
-   	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>();
-	spcl->setOriginTopic(this->topicName);
+   	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>(this->topicName);
 	spcl->setPointCloud(cloud);
 
 	if(this->sensorTransformSet) {
@@ -117,7 +123,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
             if(spcl->getPointCloud()->empty())
                 return;
 
-            pcl::IterativeClosestPoint<pcl::PointXYZRGB,pcl::PointXYZRGB> icp;
+            pcl::IterativeClosestPoint<pcl::PointXYZRGBL,pcl::PointXYZRGBL> icp;
 
             icp.setInputSource(spcl->getPointCloud());
             icp.setInputTarget(this->cloud);
@@ -156,7 +162,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud) {
     spclRecyclingThread.detach();
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr StreamManager::getCloud() {
+pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StreamManager::getCloud() {
 
     /*
 	// clear the old cloud
@@ -236,7 +242,7 @@ void StreamManager::clear() {
   	unsigned long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
 
 	// create a comparison object
-	std::shared_ptr<StampedPointCloud> spc_comp = std::make_shared<StampedPointCloud>();
+	std::shared_ptr<StampedPointCloud> spc_comp = std::make_shared<StampedPointCloud>(this->topicName);
   	spc_comp->setTimestamp(max_timestamp);
 
       // lock access to the set
