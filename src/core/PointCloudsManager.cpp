@@ -73,7 +73,7 @@ void PointCloudsManager::setTransform(const Eigen::Affine3d& transformEigen, con
 }
 
 void PointCloudsManager::initStreamManager(std::string topicName, double max_age) {
-    this->streamManagers[topicName] = std::make_shared<StreamManager>(topicName);
+    this->streamManagers[topicName] = std::make_unique<StreamManager>(topicName);
     this->streamManagers[topicName]->setMaxAge(max_age);
 }
 

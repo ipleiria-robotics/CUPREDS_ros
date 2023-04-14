@@ -37,7 +37,7 @@ class PointCloudsManager {
 		size_t n_sources;
 		double max_age;
 		// the array of instances below functions almost as a hashtable. details explained on "addCloud"
-        std::unordered_map<std::string,std::shared_ptr<StreamManager>> streamManagers; // map of stream manager pointers indexed by topic name
+        std::unordered_map<std::string,std::unique_ptr<StreamManager>> streamManagers; // map of stream manager pointers indexed by topic name
 		pcl::PointCloud<pcl::PointXYZRGBL>::Ptr mergedCloud; // the merged cloud
 		bool mergedCloudDownsampled = false; // prevent double downsampling
 

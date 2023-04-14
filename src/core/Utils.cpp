@@ -16,3 +16,8 @@ long Utils::getAgeInSecs(unsigned long long timestamp) {
 unsigned long long Utils::getMaxTimestampForAge(double age) {
     return Utils::getCurrentTimeMillis() - (age * 1000);
 }
+
+void Utils::removePointCloudFromOther(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud,
+                                      pcl::PointCloud<pcl::PointXYZRGBL>::Ptr pointsToRemove) {
+    // TODO
+}

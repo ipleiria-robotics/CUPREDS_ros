@@ -22,7 +22,7 @@
 #include <functional>
 #include <cuda_runtime.h>
 #include <Utils.h>
-#include <cuda_pointclouds.h>
+#include <cuda_pointclouds.hu>
 
 #define POINTCLOUD_ORIGIN_NONE "NONE"
 
@@ -30,7 +30,7 @@ class StampedPointCloud {
 
     private:
         unsigned long long timestamp;
-        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud;
+        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud = nullptr;
         bool cloudSet = false;
         bool transformComputed = false;
         std::string originTopic = POINTCLOUD_ORIGIN_NONE;

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.8)
 project(pcl_aggregator LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -99,7 +99,13 @@ find_package(CUDA REQUIRED)
 set(CMAKE_BUILD_TYPE "Debug")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -o0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+
+# set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
+# set(CMAKE_CUDA_STANDARD 14)
+set(CMAKE_CUDA_ARCHITECTURES 89)
+# set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -fPIC")
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
@@ -156,23 +162,27 @@ ${CUDA_INCLUDE_DIRS}
 set(CORE_SOURCE_DIR include)
 
 # compile the RGBDDeprojector class with nvcc, because we are calling a cuda kernel
-add_library(cuda_pointclouds STATIC src/core/cuda_pointclouds.cu)
-add_library(RGBDDeprojector STATIC src/core/RGBDDeprojector.cu)
+# cuda_add_library(cuda_pointclouds STATUS src/core/cuda_pointclouds.cu)
+add_library(StampedPointCloud STATIC src/core/StampedPointCloud.cpp src/core/cuda_pointclouds.cu)
+add_library(RGBDDeprojector STATIC src/core/RGBDDeprojector.cpp)
 add_library(PCLRegistrator STATIC src/core/PCLRegistrator.cpp)
-add_library(StampedPointCloud STATIC src/core/StampedPointCloud.cu)
 add_library(StreamManager STATIC src/core/StreamManager.cpp)
 add_library(PointCloudList STATIC src/core/PointCloudList.cpp)
 add_library(PointCloudsManager STATIC src/core/PointCloudsManager.cpp)
 add_library(Utils STATIC src/core/Utils.cpp)
 
+# set_target_properties(StampedPointCloud PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+# set_target_properties(StampedPointCloud PROPERTIES POSITION_INDEPENDENT_CODE OFF)
+# target_compile_options(StampedPointCloud PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC>)
+
 add_executable(
     rgbd_deprojector_node src/nodes/rgbd_deprojector_node.cpp
 )
 add_dependencies(StreamManager StampedPointCloud Utils)
-add_dependencies(rgbd_deprojector_node RGBDDeprojector)
+# add_dependencies(rgbd_deprojector_node RGBDDeprojector)
 add_dependencies(PointCloudsManager PointCloudList StreamManager Utils)
 add_dependencies(PCLRegistrator PointCloudsManager)
-add_dependencies(StampedPointCloud cuda_pointclouds)
+# add_dependencies(StampedPointCloud cuda_pointclouds)
 
 add_executable(
     pcl_aggregator_node src/nodes/pcl_aggregator_node.cpp
@@ -192,8 +202,8 @@ add_executable(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(cuda_pointclouds ${CUDA_LIBRARIES})
-target_link_libraries(StampedPointCloud ${PCL_LIBRARIES} ${Eigen_LIBRARIES} ${CUDA_LIBRARIES} cuda_pointclouds)
+# target_link_libraries(cuda_pointclouds ${CUDA_LIBRARIES})
+target_link_libraries(StampedPointCloud ${PCL_LIBRARIES} ${Eigen_LIBRARIES} ${CUDA_LIBRARIES})
 target_link_libraries(StreamManager ${PCL_LIBRARIES} StampedPointCloud Utils)
 target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(PointCloudList ${PCL_LIBRARIES})

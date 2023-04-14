@@ -1,0 +1,12 @@
+<launch>
+
+    <param name="n_pointclouds" value="2" type="int" />
+    <param name="robot_base" value="bobcat_base" type="str" />
+    <param name="max_pointcloud_age" value="1" type="double" />
+
+    <node name="pcl_aggregator" pkg="pcl_aggregator" type="pcl_aggregator_node" output="screen">
+
+        <remap to="/back_lslidar_point_cloud" from="pointcloud0" />
+        <remap to="/front_lslidar_point_cloud" from="pointcloud1" />
+    </node>
+</launch>

@@ -7,6 +7,8 @@
 #define UTILS_H_
 
 #include "ros/ros.h"
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 #include <chrono>
 
 class Utils {
@@ -14,6 +16,8 @@ class Utils {
         static unsigned long long getCurrentTimeMillis();
         static long getAgeInSecs(unsigned long long timestamp);
         static unsigned long long getMaxTimestampForAge(double age);
+        static void removePointCloudFromOther(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud,
+                                              pcl::PointCloud<pcl::PointXYZRGBL>::Ptr pointsToRemove);
 };
 
 #endif

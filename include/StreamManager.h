@@ -34,7 +34,7 @@
 class StreamManager {
     private:
         std::string topicName;
-        std::shared_ptr<StampedPointCloud> cloud = nullptr; // shared pointer to the merged pointcloud
+        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud = nullptr; // shared pointer to the merged pointcloud
         bool pointCloudSet = false;
         Eigen::Affine3d sensorTransform; // transform of the sensor frame to the robot base
         bool sensorTransformSet = false; // was the sensor transform set?
