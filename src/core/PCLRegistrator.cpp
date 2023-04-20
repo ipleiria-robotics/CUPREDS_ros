@@ -44,11 +44,14 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
         */
 
         geometry_msgs::TransformStamped transform =
-            this->tfBuffer.lookupTransform(this->robotFrame, msg->header.frame_id, ros::Time(0));
+            this->tfBuffer.lookupTransform(msg->header.frame_id, this->robotFrame, ros::Time(0));
 
         // convert tf to Eigen homogenous transformation matrix
         Eigen::Affine3d transformEigen;
         transformEigen = tf2::transformToEigen(transform);
+        // invert the affine transformation
+        transformEigen.matrix().inverse();
+
         this->manager->setTransform(transformEigen, topicName);
 
     } catch (tf2::TransformException &ex) {
