@@ -34,22 +34,26 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGBL>
 
 	// align the pointclouds
     if(!input->empty()) {
-        pcl::IterativeClosestPoint<pcl::PointXYZRGBL, pcl::PointXYZRGBL> icp;
-        icp.setInputSource(input);
-        icp.setInputTarget(this->mergedCloud); // "input" will align to "merged"
+        if(!this->mergedCloud->empty()) {
+            // create an ICP instance
+            pcl::IterativeClosestPoint<pcl::PointXYZRGBL, pcl::PointXYZRGBL> icp;
+            icp.setInputSource(input);
+            icp.setInputTarget(this->mergedCloud); // "input" will align to "merged"
 
-        icp.setMaxCorrespondenceDistance(GLOBAL_ICP_MAX_CORRESPONDENCE_DISTANCE);
-        icp.setMaximumIterations(GLOBAL_ICP_MAX_ITERATIONS);
+            icp.setMaxCorrespondenceDistance(GLOBAL_ICP_MAX_CORRESPONDENCE_DISTANCE);
+            icp.setMaximumIterations(GLOBAL_ICP_MAX_ITERATIONS);
 
-        icp.align(*this->mergedCloud); // combine the aligned pointclouds on the "merged" instance
+            icp.align(*this->mergedCloud); // combine the aligned pointclouds on the "merged" instance
 
-        if (!icp.hasConverged())
-            *mergedCloud += *input; // if alignment was not possible, just add the pointclouds
+            if (!icp.hasConverged())
+                *this->mergedCloud += *input; // if alignment was not possible, just add the pointclouds
 
-        return icp.hasConverged(); // return true if alignment was possible
-
-        // NORMAL CONCATENATION
-        *this->mergedCloud += *input;
+            return icp.hasConverged(); // return true if alignment was possible
+            
+        } else {
+            *this->mergedCloud += *input;
+        }
+        
     }
 
 	return false;

@@ -120,37 +120,36 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
         }*/
 
         // do ICP to the current pointcloud
-        if(!this->pointCloudSet) {
+        if(!this->pointCloudSet && spcl->getPointCloud()->size() > 0) {
             // copy the first pointcloud to the cloud
             pcl::copyPointCloud(*spcl->getPointCloud(), *this->cloud);
             this->pointCloudSet = true;
             return;
         }
         try {
-            if(spcl->getPointCloud()->empty())
-                return;
+            if(!spcl->getPointCloud()->empty()) {
+                if(!this->cloud->empty()) {
+                    pcl::IterativeClosestPoint<pcl::PointXYZRGBL,pcl::PointXYZRGBL> icp;
 
-            pcl::IterativeClosestPoint<pcl::PointXYZRGBL,pcl::PointXYZRGBL> icp;
+                    icp.setInputSource(spcl->getPointCloud());
+                    icp.setInputTarget(this->cloud);
 
-            icp.setInputSource(spcl->getPointCloud());
-            icp.setInputTarget(this->cloud);
+                    icp.setMaxCorrespondenceDistance(STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE);
+                    icp.setMaximumIterations(STREAM_ICP_MAX_ITERATIONS);
 
-            icp.setMaxCorrespondenceDistance(STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE);
-            icp.setMaximumIterations(STREAM_ICP_MAX_ITERATIONS);
+                    icp.align(*this->cloud);
 
-            icp.align(*this->cloud);
+                    if (!icp.hasConverged())
+                        *this->cloud += *spcl->getPointCloud(); // if alignment was not possible, just add the pointclouds
 
-            if (icp.hasConverged()) {
+                } else {
+                    *this->cloud += *spcl->getPointCloud();
+                }
 
-                /*
-                Eigen::Matrix4f final_transform = icp.getFinalTransformation();
-
-                // transform the source pointcloud to allow later removal by index
-                std::thread icpTransformThread(icpTransformPointCloudRoutine, spcl, final_transform);
-                icpTransformThread.detach();*/
-
-            } else {
-                *this->cloud += *spcl->getPointCloud();
+                // start the pointcloud recycling thread
+                std::thread spclRecyclingThread(pointCloudAutoRemoveRoutine, this, spcl);
+                // detach from the thread, this execution flow doesn't really care about it
+                spclRecyclingThread.detach();
             }
 
         } catch (std::exception &e) {
@@ -163,68 +162,9 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 		this->clouds_not_transformed.push(spcl);
 	}
 
-    // start the pointcloud recycling thread
-    std::thread spclRecyclingThread(pointCloudAutoRemoveRoutine, this, spcl);
-    // detach from the thread, this execution flow doesn't really care about it
-    spclRecyclingThread.detach();
 }
 
 pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StreamManager::getCloud() {
-
-    /*
-	// clear the old cloud
-	this->cloud->empty();
-
-	// create a icp object
-	pcl::IterativeClosestPoint<pcl::PointXYZRGB,pcl::PointXYZRGB> icp;
-
-	bool firstCloud = true;
-
-    // clear the set
-    // this->clear();
-
-    // lock access to the set to iterate it
-    std::lock_guard<std::mutex> guard(this->setMutex);
-
-    // iterator
-    std::set<std::shared_ptr<StampedPointCloud>,CompareStampedPointCloudPointers>::iterator it;
-
-	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
-		if(firstCloud) {
-			// copy the first pointcloud to the cloud
-			pcl::copyPointCloud(*(*it)->getPointCloud(), *this->cloud);
-			firstCloud = false;
-			continue;
-		}
-		*this->cloud += *(*it)->getPointCloud();
-	}
-
-	// iterate over all pointclouds in the set and do ICP
-	for(it = this->clouds.begin(); it != this->clouds.end(); ++it) {
-		if(firstCloud) {
-			// copy the first pointcloud to the cloud
-			pcl::copyPointCloud(*(*it)->getPointCloud(), *this->cloud);
-			firstCloud = false;
-			continue;
-		}
-		try {
-			if((*it)->getPointCloud()->size() == 0)
-				continue;
-			icp.setInputSource((*it)->getPointCloud());
-			icp.setInputTarget(this->cloud);
-
-            icp.setMaxCorrespondenceDistance(STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE);
-            icp.setMaximumIterations(STREAM_ICP_MAX_ITERATIONS);
-
-			icp.align(*this->cloud);
-
-		} catch (std::exception &e) {
-			std::cout << "Error performing sensor-wise ICP: " << e.what() << std::endl;
-		}
-	}
-
-	this->pointCloudSet = true;
-    */
 	return this->cloud;
 }
 

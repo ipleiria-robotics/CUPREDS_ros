@@ -26,6 +26,10 @@
 #define PCL_QUEUES_LEN 1000
 
 void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub, PCLRegistrator *registrator) {
+
+    if(registrator->getPointCloud().empty())
+        return;
+
     sensor_msgs::PointCloud2 ros_cloud;
 
     // convert the PCL pointcloud to the ROS PointCloud2 format
