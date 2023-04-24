@@ -119,13 +119,6 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
             spcl->addMergedIndex(i);
         }*/
 
-        // do ICP to the current pointcloud
-        if(!spcl->getPointCloud()->empty()) {
-            // copy the first pointcloud to the cloud
-            this->cloud->setPointCloud(spcl->getPointCloud());
-            this->pointCloudSet = true;
-            return;
-        }
         try {
             if(!spcl->getPointCloud()->empty()) {
                 if(!this->cloud->getPointCloud()->empty()) {
@@ -143,7 +136,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
                         *this->cloud->getPointCloud() += *spcl->getPointCloud(); // if alignment was not possible, just add the pointclouds
 
                 } else {
-                    *this->cloud->getPointCloud() += *spcl->getPointCloud();
+                    *this->cloud->getPointCloud() = *spcl->getPointCloud();
                 }
 
                 // start the pointcloud recycling thread
