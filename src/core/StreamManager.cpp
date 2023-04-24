@@ -10,7 +10,7 @@
 
 #include <utility>
 
-#define STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE 0.1
+#define STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE 1
 #define STREAM_ICP_MAX_ITERATIONS 10
 
 StreamManager::StreamManager(std::string topicName) {

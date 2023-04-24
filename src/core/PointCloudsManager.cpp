@@ -11,7 +11,7 @@
 #include <utility>
 
 #define GLOBAL_ICP_MAX_CORRESPONDENCE_DISTANCE 1
-#define GLOBAL_ICP_MAX_ITERATIONS 1
+#define GLOBAL_ICP_MAX_ITERATIONS 10
 
 PointCloudsManager::PointCloudsManager(size_t n_sources, double max_age) {
 		this->n_sources = n_sources;

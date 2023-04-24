@@ -14,6 +14,8 @@ StampedPointCloud::StampedPointCloud(std::string originTopic) {
     this->setOriginTopic(originTopic);
 
     this->label = generateLabel();
+
+    this->cloud = pcl::PointCloud<pcl::PointXYZRGBL>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBL>());
 }
 
 std::uint32_t StampedPointCloud::generateLabel() {
@@ -51,6 +53,8 @@ void StampedPointCloud::setTimestamp(unsigned long long t) {
 }
 
 void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c, bool assignGeneratedLabel) {
+    this->cloud.reset();
+
     this->cloudSet = true;
     this->cloud = c;
 
