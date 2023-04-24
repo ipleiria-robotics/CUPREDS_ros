@@ -23,7 +23,7 @@
 
 #define NUM_SPINNER_THREADS 16
 
-#define PCL_QUEUES_LEN 1000
+#define PCL_QUEUES_LEN 1000000
 
 void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub, PCLRegistrator *registrator) {
 
@@ -91,14 +91,15 @@ int main(int argc, char **argv) {
     ros::Timer timer = nh.createTimer(ros::Duration(1.0 / publish_rate), boost::bind(&pointcloudPublishCallback, _1, &pub, registrator));
 
     // start the spinner
-	ros::AsyncSpinner spinner(NUM_SPINNER_THREADS, &callback_queue);
-	spinner.start();
+    ros::MultiThreadedSpinner spinner(NUM_SPINNER_THREADS);
+	// ros::AsyncSpinner spinner(NUM_SPINNER_THREADS, &callback_queue);
 
-    // spin
-    ros::waitForShutdown();
+	spinner.spin();
+
+    // ros::waitForShutdown();
 
     // stop the spinner
-	spinner.stop();
+	// spinner.stop();
 
     delete registrator;
 

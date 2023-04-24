@@ -32,7 +32,7 @@ void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
     this->cloud->removePointsWithLabel(spcl->getLabel());
 
     // lock the set
-    std::lock_guard<std::mutex> guard(this->setMutex); 
+    std::lock_guard<std::mutex> guard(this->setMutex);
 
     // iterate the set
     for(auto it = this->clouds.begin(); it != this->clouds.end(); it++) {
@@ -187,10 +187,10 @@ void StreamManager::clear() {
 	std::shared_ptr<StampedPointCloud> spc_comp = std::make_shared<StampedPointCloud>(this->topicName);
   	spc_comp->setTimestamp(max_timestamp);
 
-      // lock access to the set
-      std::lock_guard<std::mutex> guard(this->setMutex);
+    // lock access to the set
+    std::lock_guard<std::mutex> guard(this->setMutex);
 
-      // remove all pointclouds not meeting criteria
+    // remove all pointclouds not meeting criteria
     auto lower = this->clouds.lower_bound(spc_comp);
     try {
         this->clouds.erase(this->clouds.begin(), lower);
