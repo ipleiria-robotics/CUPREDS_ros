@@ -28,14 +28,15 @@ bool StreamManager::operator==(const StreamManager &other) const {
 
 void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
 
+    // remove points with that label from the merged pointcloud
+    this->cloud->removePointsWithLabel(spcl->getLabel());
+
     // lock the set
-    std::lock_guard<std::mutex> guard(this->setMutex);
+    std::lock_guard<std::mutex> guard(this->setMutex); 
 
     // iterate the set
     for(auto it = this->clouds.begin(); it != this->clouds.end(); it++) {
         if((*it)->getLabel() == spcl->getLabel()) {
-            // remove points with that label from the merged pointcloud
-            // this->cloud->removePointsWithLabel(spcl->getLabel());
             // remove the pointcloud from the set
             this->clouds.erase(it);
         }
@@ -62,7 +63,6 @@ void StreamManager::computeTransform() {
 
 // this is a routine to call from a thread to transform a pointcloud
 void applyTransformRoutine(StreamManager *instance, std::shared_ptr<StampedPointCloud> spcl, Eigen::Affine3d tf) {
-    std::lock_guard<std::mutex> guard(instance->setMutex);
 	spcl->applyTransform(tf);
 }
 
@@ -102,7 +102,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 		std::thread transformationThread(applyTransformRoutine, this, spcl, sensorTransform);
 
 		// start a thread to clear the pointclouds older than max age
-		std::thread cleaningThread(clearPointCloudsRoutine, this);
+		// std::thread cleaningThread(clearPointCloudsRoutine, this);
 
 		// wait for both threads to synchronize
 		transformationThread.join();
@@ -185,6 +185,8 @@ double StreamManager::getMaxAge() {
 }
 
 void StreamManager::clear() {
+
+    // CURRENTLY DEPRECATED: pointclouds are currently autoremoved
 
   	unsigned long long max_timestamp = Utils::getMaxTimestampForAge(this->max_age);
 
