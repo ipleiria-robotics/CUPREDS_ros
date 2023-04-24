@@ -15,7 +15,7 @@
 
 StreamManager::StreamManager(std::string topicName) {
     this->topicName = topicName;
-    this->cloud = pcl::PointCloud<pcl::PointXYZRGBL>().makeShared();
+    this->cloud = std::make_shared<StampedPointCloud>(topicName);
 }
 
 StreamManager::~StreamManager() {
@@ -106,7 +106,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 
 		// wait for both threads to synchronize
 		transformationThread.join();
-		cleaningThread.join();
+		// cleaningThread.join();
 
 		// add the new pointcloud to the set
         /*
@@ -120,30 +120,30 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
         }*/
 
         // do ICP to the current pointcloud
-        if(!this->pointCloudSet && spcl->getPointCloud()->size() > 0) {
+        if(!spcl->getPointCloud()->empty()) {
             // copy the first pointcloud to the cloud
-            pcl::copyPointCloud(*spcl->getPointCloud(), *this->cloud);
+            this->cloud->setPointCloud(spcl->getPointCloud());
             this->pointCloudSet = true;
             return;
         }
         try {
             if(!spcl->getPointCloud()->empty()) {
-                if(!this->cloud->empty()) {
+                if(!this->cloud->getPointCloud()->empty()) {
                     pcl::IterativeClosestPoint<pcl::PointXYZRGBL,pcl::PointXYZRGBL> icp;
 
                     icp.setInputSource(spcl->getPointCloud());
-                    icp.setInputTarget(this->cloud);
+                    icp.setInputTarget(this->cloud->getPointCloud());
 
                     icp.setMaxCorrespondenceDistance(STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE);
                     icp.setMaximumIterations(STREAM_ICP_MAX_ITERATIONS);
 
-                    icp.align(*this->cloud);
+                    icp.align(*this->cloud->getPointCloud());
 
                     if (!icp.hasConverged())
-                        *this->cloud += *spcl->getPointCloud(); // if alignment was not possible, just add the pointclouds
+                        *this->cloud->getPointCloud() += *spcl->getPointCloud(); // if alignment was not possible, just add the pointclouds
 
                 } else {
-                    *this->cloud += *spcl->getPointCloud();
+                    *this->cloud->getPointCloud() += *spcl->getPointCloud();
                 }
 
                 // start the pointcloud recycling thread
@@ -165,7 +165,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 }
 
 pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StreamManager::getCloud() {
-	return this->cloud;
+	return this->cloud->getPointCloud();
 }
 
 void StreamManager::setSensorTransform(Eigen::Affine3d transform) {
