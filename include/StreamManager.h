@@ -45,6 +45,9 @@ class StreamManager {
         std::queue<std::shared_ptr<StampedPointCloud>> clouds_not_transformed;
         double max_age; // max age of the pointclouds in seconds
         std::mutex setMutex;
+        std::mutex cloudMutex;
+        std::mutex sensorTransformMutex;
+
         void removePointCloud(std::shared_ptr<StampedPointCloud> spcl);
 
     public:

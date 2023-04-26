@@ -17,6 +17,7 @@
 #include "tf2_eigen/tf2_eigen.h"
 #include "PointCloudsManager.h"
 #include <memory>
+#include <thread>
 
 class PCLRegistrator {
 
@@ -38,6 +39,8 @@ class PCLRegistrator {
         void setRobotFrame(std::string robotFrame);
         void setPublisher(ros::Publisher point_cloud_pub);
         pcl::PointCloud<pcl::PointXYZRGBL> getPointCloud();
+
+    friend void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName);
 };
 
 #endif

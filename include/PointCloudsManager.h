@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <set>
 #include <memory>
+#include <mutex>
 
 #define FILTER_VOXEL_SIZE 0.1f
 
@@ -40,6 +41,9 @@ class PointCloudsManager {
         std::unordered_map<std::string,std::unique_ptr<StreamManager>> streamManagers; // map of stream manager pointers indexed by topic name
 		pcl::PointCloud<pcl::PointXYZRGBL>::Ptr mergedCloud; // the merged cloud
 		bool mergedCloudDownsampled = false; // prevent double downsampling
+
+		std::mutex managersMutex; // mutex to protect the stream managers
+		
 
 		bool appendToMerged(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& input);
 		void clearMergedCloud();
