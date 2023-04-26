@@ -121,6 +121,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 
         try {
             if(!spcl->getPointCloud()->empty()) {
+                this->cloudMutex.lock();
                 if(!this->cloud->getPointCloud()->empty()) {
                     pcl::IterativeClosestPoint<pcl::PointXYZRGBL,pcl::PointXYZRGBL> icp;
 
@@ -138,6 +139,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
                 } else {
                     *this->cloud->getPointCloud() = *spcl->getPointCloud();
                 }
+                this->cloudMutex.unlock();
 
                 // start the pointcloud recycling thread
                 std::thread spclRecyclingThread(pointCloudAutoRemoveRoutine, this, spcl);
@@ -163,6 +165,8 @@ pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StreamManager::getCloud() {
 
 void StreamManager::setSensorTransform(Eigen::Affine3d transform) {
 
+    std::lock_guard<std::mutex> lock(this->sensorTransformMutex);
+    
 	// set the new transform
     this->sensorTransform = transform;
     this->sensorTransformSet = true;

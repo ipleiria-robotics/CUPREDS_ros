@@ -62,8 +62,7 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGBL>
 void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, const std::string& topicName) {
 
     // the key is not present
-    if (this->streamManagers.count(topicName) == 0)
-        this->initStreamManager(topicName, this->max_age);
+    this->initStreamManager(topicName, this->max_age);
 
     this->streamManagers[topicName]->addCloud(std::move(cloud));
 
@@ -71,12 +70,17 @@ void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud,
 
 void PointCloudsManager::setTransform(const Eigen::Affine3d& transformEigen, const std::string& topicName) {
 
-	if(this->streamManagers.count(topicName) == 0)
-		this->initStreamManager(topicName, this->max_age);
+    this->initStreamManager(topicName, this->max_age);
+
 	this->streamManagers[topicName]->setSensorTransform(transformEigen);
 }
 
 void PointCloudsManager::initStreamManager(std::string topicName, double max_age) {
+
+    std::lock_guard<std::mutex> lock(this->managersMutex);
+
+    if(this->streamManagers.count(topicName) != 0)
+        return;
     this->streamManagers[topicName] = std::make_unique<StreamManager>(topicName);
     this->streamManagers[topicName]->setMaxAge(max_age);
 }
@@ -108,6 +112,7 @@ pcl::PointCloud<pcl::PointXYZRGBL> PointCloudsManager::getMergedCloud() {
     /* TODO: review performance of only perform merging on demand
      * vs merging the pointclouds and removing as needed every time
     */
+    std::lock_guard<std::mutex> lock(this->managersMutex);
     for(auto iter = this->streamManagers.begin(); iter != this->streamManagers.end(); ++iter) {
 		if(firstCloud) {
 			this->mergedCloud = iter->second->getCloud();
