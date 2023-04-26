@@ -26,9 +26,7 @@ void PCLRegistrator::initializeManager() {
     this->manager = std::make_shared<PointCloudsManager>(n_sources, max_pointcloud_age);
 }
 
-// called when any new pointcloud is received
-void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
-
+void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
     ROS_INFO("New pointcloud from %s", topicName.c_str());
 
     // convert from the ROS to the PCL format
@@ -44,7 +42,7 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
         */
 
         geometry_msgs::TransformStamped transform =
-            this->tfBuffer.lookupTransform(msg->header.frame_id, this->robotFrame, ros::Time(0));
+            pclRegistrator->tfBuffer.lookupTransform(msg->header.frame_id, pclRegistrator->robotFrame, ros::Time(0));
 
         // convert tf to Eigen homogenous transformation matrix
         Eigen::Affine3d transformEigen;
@@ -52,7 +50,7 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
         // invert the affine transformation
         transformEigen.matrix().inverse();
 
-        this->manager->setTransform(transformEigen, topicName);
+        pclRegistrator->manager->setTransform(transformEigen, topicName);
 
     } catch (tf2::TransformException &ex) {
         ROS_WARN("Error looking up the transform to '%s': %s", msg->header.frame_id.c_str(), ex.what());
@@ -60,7 +58,13 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
     }
 
     // feed the manager with the new pointcloud
-    this->manager->addCloud(cloud, topicName);
+    pclRegistrator->manager->addCloud(cloud, topicName);
+}
+
+// called when any new pointcloud is received
+void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
+
+    pointcloudCallbackRoutine(this, msg, topicName);
 }
 
 std::string PCLRegistrator::getRobotFrame() {
