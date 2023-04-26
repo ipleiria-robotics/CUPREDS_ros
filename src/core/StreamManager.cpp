@@ -82,6 +82,9 @@ void pointCloudAutoRemoveRoutine(StreamManager* instance, std::shared_ptr<Stampe
 
     // call the pointcloud removal method
     instance->removePointCloud(spcl);
+
+    // free the pointer
+    spcl.reset();
 }
 
 void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eigen::Matrix4f tf) {
@@ -140,6 +143,9 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
                     *this->cloud->getPointCloud() = *spcl->getPointCloud();
                 }
                 this->cloudMutex.unlock();
+
+                // remove the points. they are not needed, just the label
+                spcl->getPointCloud().reset();
 
                 // start the pointcloud recycling thread
                 std::thread spclRecyclingThread(pointCloudAutoRemoveRoutine, this, spcl);
