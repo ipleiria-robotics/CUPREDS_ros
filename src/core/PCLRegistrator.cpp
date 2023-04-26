@@ -64,7 +64,10 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
 // called when any new pointcloud is received
 void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
 
-    pointcloudCallbackRoutine(this, msg, topicName);
+    // call the routine on a new thread
+    std::thread pointcloudThread(pointcloudCallbackRoutine, this, msg, topicName);
+    // dettach the thread to stop blocking execution
+    pointcloudThread.detach();
 }
 
 std::string PCLRegistrator::getRobotFrame() {
