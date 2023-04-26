@@ -42,6 +42,12 @@ __host__ void setPointCloudLabelCuda(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr clo
         return;
     }
 
+    // free the memory
+    if((err = cudaFree(d_cloud)) != cudaSuccess) {
+        std::cerr << "Error freeing the pointcloud from device memory: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
     // destroy the stream
     if((err = cudaStreamDestroy(stream)) != cudaSuccess) {
         std::cerr << "Error destroying the CUDA stream: " << cudaGetErrorString(err) << std::endl;
@@ -93,6 +99,12 @@ __host__ void transformPointCloudCuda(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cl
     // copy the output pointcloud back to the host
     if((err = cudaMemcpy(cloud->points.data(), d_cloud, cloud->size() * sizeof(pcl::PointXYZRGBL), cudaMemcpyDeviceToHost)) != cudaSuccess) {
         std::cerr << "Error copying the output pointcloud to the host: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
+
+    // free the memory
+    if((err = cudaFree(d_cloud)) != cudaSuccess) {
+        std::cerr << "Error freeing the pointcloud from device memory: " << cudaGetErrorString(err) << std::endl;
         return;
     }
 
