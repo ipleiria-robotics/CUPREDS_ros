@@ -69,7 +69,8 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
     auto pointcloudRoutine = [] (PCLRegistrator *instance, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
         pointcloudCallback(instance, msg, topicName);
     }*/
-    boost::asio::post(*pool, std::bind(pointcloudCallbackRoutine, this, msg, topicName));
+    boost::asio::post(*pool, [this, msg, topicName]
+    { return pointcloudCallbackRoutine(this, msg, topicName); });
 
     /*
     // call the routine on a new thread
