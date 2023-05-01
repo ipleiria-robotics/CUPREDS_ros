@@ -6,7 +6,19 @@
 
     <node name="pcl_aggregator" pkg="pcl_aggregator" type="pcl_aggregator_node" output="screen">
 
+	<remap to="/points1" from="pointcloud0" />
+	<remap to="/points2" from="pointcloud1" />
+	<remap to="/points3" from="pointcloud2" />
+
+<!--
+        <remap to="/realsense/depth/color/points" from="pointcloud0" />
+-->
+
+    <!--
         <remap to="/velodyne_points" from="pointcloud0" />
+    
         <remap to="/os_cloud_node/points" from="pointcloud1" />
+        <remap to="/os_cloud_nodee/points" from="pointcloud1" />
+	-->
     </node>
 </launch>

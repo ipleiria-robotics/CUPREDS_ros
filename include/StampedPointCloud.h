@@ -41,6 +41,7 @@ class StampedPointCloud {
 
     public:
         StampedPointCloud(std::string originTopic);
+        ~StampedPointCloud();
 
         unsigned long long getTimestamp();
         pcl::PointCloud<pcl::PointXYZRGBL>::Ptr getPointCloud() const;

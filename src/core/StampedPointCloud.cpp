@@ -18,6 +18,12 @@ StampedPointCloud::StampedPointCloud(std::string originTopic) {
     this->cloud = pcl::PointCloud<pcl::PointXYZRGBL>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBL>());
 }
 
+StampedPointCloud::~StampedPointCloud() {
+    // free the pointcloud
+    if(this->cloud != nullptr)
+        this->cloud.reset();
+}
+
 std::uint32_t StampedPointCloud::generateLabel() {
 
     std::string combined = this->originTopic + std::to_string(this->timestamp);
@@ -56,7 +62,7 @@ void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c,
     this->cloud.reset();
 
     this->cloudSet = true;
-    this->cloud = c;
+    this->cloud = std::move(c); // move the pointcloud (smart pointer)
 
     if(assignGeneratedLabel)
         this->assignLabelToPointCloud(this->cloud, this->label);

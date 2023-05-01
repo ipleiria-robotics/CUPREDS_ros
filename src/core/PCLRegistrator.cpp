@@ -33,6 +33,9 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
     pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBL>);
     pcl::fromROSMsg(*msg, *cloud);
 
+    if(cloud->empty())
+        return;
+
     try {
 
         // get the transform from the robot base to the pointcloud frame
