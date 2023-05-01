@@ -22,6 +22,7 @@
 #define AGGREGATOR_PUBLISH_RATE 10 // Hz
 
 #define NUM_SPINNER_THREADS 16
+#define N_THREADS_IN_CALLBACK_POOL 32
 
 #define PCL_QUEUES_LEN 1000000
 
@@ -73,6 +74,9 @@ int main(int argc, char **argv) {
     // set the robot base frame
     registrator->setRobotFrame(robot_base);
 
+    // create a callback thread pool
+    boost::asio::thread_pool pool(N_THREADS_IN_CALLBACK_POOL);
+
     // initialize the subscribers
     #pragma omp parallel for
     for(int i = 0; i < n_pointclouds; i++) {
@@ -80,7 +84,7 @@ int main(int argc, char **argv) {
         topicName = "";
         topicName.append(SUB_POINTCLOUD_TOPIC);
         topicName.append(std::to_string(i));
-        ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName));
+        ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName, &pool));
         pcl_subscribers.push_back(sub);
         ROS_INFO("Subscribing to %s", topicName.c_str());
     }

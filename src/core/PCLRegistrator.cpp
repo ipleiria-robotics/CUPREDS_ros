@@ -19,11 +19,12 @@ PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age) {
 }
 
 PCLRegistrator::~PCLRegistrator() {
+    this->manager.reset();
 }
 
 // initialize the sources manager with the number of sources and configured max pointcloud age
 void PCLRegistrator::initializeManager() {
-    this->manager = std::make_shared<PointCloudsManager>(n_sources, max_pointcloud_age);
+    this->manager = std::make_shared<pcl_aggregator::managers::PointCloudsManager>(n_sources, max_pointcloud_age);
 }
 
 void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
@@ -62,12 +63,20 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
 }
 
 // called when any new pointcloud is received
-void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
+void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName, boost::asio::thread_pool *pool) {
 
+    /*
+    auto pointcloudRoutine = [] (PCLRegistrator *instance, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
+        pointcloudCallback(instance, msg, topicName);
+    }*/
+    boost::asio::post(*pool, std::bind(pointcloudCallbackRoutine, this, msg, topicName));
+
+    /*
     // call the routine on a new thread
     std::thread pointcloudThread(pointcloudCallbackRoutine, this, msg, topicName);
     // dettach the thread to stop blocking execution
     pointcloudThread.detach();
+    */
 }
 
 std::string PCLRegistrator::getRobotFrame() {
