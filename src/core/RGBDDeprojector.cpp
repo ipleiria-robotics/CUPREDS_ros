@@ -30,7 +30,7 @@ ros::Publisher RGBDDeprojector::getPointCloudPublisher() {
 }
 
 void RGBDDeprojector::setPointCloudPublisher(std::shared_ptr<ros::Publisher> point_cloud_pub) {
-    this->point_cloud_pub = point_cloud_pub;
+    this->point_cloud_pub = std::move(point_cloud_pub);
 }
 
 void RGBDDeprojector::depthInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg) {

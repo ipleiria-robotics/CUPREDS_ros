@@ -8,7 +8,9 @@
 
 	<remap to="/points1" from="pointcloud0" />
 	<remap to="/points2" from="pointcloud1" />
+    <!--
 	<remap to="/points3" from="pointcloud2" />
+    -->
 
 <!--
         <remap to="/realsense/depth/color/points" from="pointcloud0" />

@@ -31,10 +31,17 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
 
     // convert from the ROS to the PCL format
     pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBL>);
-    pcl::fromROSMsg(*msg, *cloud);
-
-    if(cloud->empty())
+    try {
+        pcl::fromROSMsg(*msg, *cloud);
+    } catch (std::exception& e) {
+        ROS_WARN("Error converting pointcloud from ROS to PCL: %s", e.what());
         return;
+    }
+
+    if(cloud->empty()) {
+        cloud.reset();
+        return;
+    }
 
     try {
 
@@ -61,16 +68,23 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
     }
 
     // feed the manager with the new pointcloud
-    pclRegistrator->manager->addCloud(cloud, topicName);
+    pclRegistrator->manager->addCloud(std::move(cloud), topicName);
 }
 
 // called when any new pointcloud is received
-void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
+void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName, boost::asio::thread_pool* pool) {
 
+    boost::asio::post(*pool, [this, msg, topicName]
+    { return pointcloudCallbackRoutine(this, msg, topicName); });
+
+    // pointcloudCallbackRoutine(this, msg, topicName);
+
+    /*
     // call the routine on a new thread
     std::thread pointcloudThread(pointcloudCallbackRoutine, this, msg, topicName);
     // dettach the thread to stop blocking execution
     pointcloudThread.detach();
+    */
 }
 
 std::string PCLRegistrator::getRobotFrame() {

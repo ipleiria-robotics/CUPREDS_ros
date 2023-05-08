@@ -59,18 +59,23 @@ void StampedPointCloud::setTimestamp(unsigned long long t) {
 }
 
 void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c, bool assignGeneratedLabel) {
-    this->cloud.reset();
+    if(c == nullptr)
+        return;
+
+    this->cloud.reset(c.get());
 
     this->cloudSet = true;
-    this->cloud = std::move(c); // move the pointcloud (smart pointer)
 
     if(assignGeneratedLabel)
         this->assignLabelToPointCloud(this->cloud, this->label);
+
+    c.reset();
 }
 
 void StampedPointCloud::assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label) {
 
     setPointCloudLabelCuda(cloud, label);
+    cloud.reset();
 }
 
 void StampedPointCloud::setOriginTopic(std::string origin) {
@@ -108,9 +113,12 @@ void StampedPointCloud::applyIcpTransform(Eigen::Matrix4f tf) {
 
 void StampedPointCloud::removePointsWithLabel(std::uint32_t label) {
 
-    for(auto it = this->cloud->begin(); it != this->cloud->end(); it++) {
-        if(it->label == label) {
-            this->cloud->erase(it);
-        }
-    }
+    if(this->cloud == nullptr)
+        return;
+
+    this->cloud->erase(std::remove_if(this->cloud->begin(), this->cloud->end(),
+                                     [label](const auto& element) { return element.label == label; }),
+                      this->cloud->end());
+
+    this->cloud.reset();
 }

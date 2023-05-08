@@ -18,6 +18,9 @@
 #include "PointCloudsManager.h"
 #include <memory>
 #include <thread>
+#include <mutex>
+#include <boost/asio/thread_pool.hpp>
+#include <boost/asio/post.hpp>
 
 class PCLRegistrator {
 
@@ -34,7 +37,7 @@ class PCLRegistrator {
     public:
         PCLRegistrator(size_t n_sources, double max_age);
         ~PCLRegistrator();
-        void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName);
+        void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName, boost::asio::thread_pool* pool);
         std::string getRobotFrame();
         void setRobotFrame(std::string robotFrame);
         void setPublisher(ros::Publisher point_cloud_pub);

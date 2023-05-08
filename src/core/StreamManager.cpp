@@ -35,17 +35,21 @@ void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
     std::lock_guard<std::mutex> guard(this->setMutex);
 
     // iterate the set
-    for(auto it = this->clouds.begin(); it != this->clouds.end(); it++) {
-        if((*it)->getLabel() == spcl->getLabel()) {
+    for (auto it = this->clouds.begin(); it != this->clouds.end();) {
+        if ((*it)->getLabel() == spcl->getLabel()) {
             // remove the pointcloud from the set
-            this->clouds.erase(it);
+            it = this->clouds.erase(it);
+        } else {
+            ++it;
         }
     }
+
+    spcl.reset();
 }
 
 void StreamManager::computeTransform() {
 
-	while(this->clouds_not_transformed.size() > 0) {
+	while(!this->clouds_not_transformed.empty()) {
 		
 		// get the first element
 		std::shared_ptr<StampedPointCloud> spcl = this->clouds_not_transformed.front();
@@ -54,8 +58,11 @@ void StreamManager::computeTransform() {
 		// add to the set
 		this->clouds.insert(spcl);
 
+        this->clouds_not_transformed.front().reset();
 		// remove from the queue
 		this->clouds_not_transformed.pop();
+
+        spcl.reset();
 	}
 
 	this->pointCloudSet = true;
@@ -64,6 +71,7 @@ void StreamManager::computeTransform() {
 // this is a routine to call from a thread to transform a pointcloud
 void applyTransformRoutine(StreamManager *instance, std::shared_ptr<StampedPointCloud> spcl, Eigen::Affine3d tf) {
 	spcl->applyTransform(tf);
+    spcl.reset();
 }
 
 // this is a routine to call from a thread to clear the pointclouds which don't meet the criteria
@@ -81,22 +89,27 @@ void pointCloudAutoRemoveRoutine(StreamManager* instance, std::shared_ptr<Stampe
             static_cast<long long>(instance->max_age * 1000)));
 
     // call the pointcloud removal method
-    instance->removePointCloud(spcl);
-
-    // free the pointer
-    spcl.reset();
+    instance->removePointCloud(std::move(spcl));
 }
 
 void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eigen::Matrix4f tf) {
 
     spcl->applyIcpTransform(tf);
+    spcl.reset();
 }
 
 void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 
+    if(cloud == nullptr)
+        return;
+    if(cloud->empty()) {
+        cloud.reset();
+        return;
+    }
+
 	// create a stamped point cloud object to keep this pointcloud
    	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>(this->topicName);
-	spcl->setPointCloud(cloud);
+	spcl->setPointCloud(std::move(cloud));
 
 	if(this->sensorTransformSet) {
 		// transform the incoming pointcloud and add directly to the set
@@ -126,6 +139,7 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
             if(!spcl->getPointCloud()->empty()) {
                 this->cloudMutex.lock();
                 if(!this->cloud->getPointCloud()->empty()) {
+                    /*
                     pcl::IterativeClosestPoint<pcl::PointXYZRGBL,pcl::PointXYZRGBL> icp;
 
                     icp.setInputSource(spcl->getPointCloud());
@@ -136,16 +150,21 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 
                     icp.align(*this->cloud->getPointCloud());
 
-                    if (!icp.hasConverged())
+                    if (!icp.hasConverged()) {
                         *this->cloud->getPointCloud() += *spcl->getPointCloud(); // if alignment was not possible, just add the pointclouds
+                        
+                    }*/
+
+                    *this->cloud->getPointCloud() = *spcl->getPointCloud();
 
                 } else {
                     *this->cloud->getPointCloud() = *spcl->getPointCloud();
                 }
-                this->cloudMutex.unlock();
 
                 // remove the points. they are not needed, just the label
                 spcl->getPointCloud().reset();
+
+                this->cloudMutex.unlock();
 
                 // start the pointcloud recycling thread
                 std::thread spclRecyclingThread(pointCloudAutoRemoveRoutine, this, spcl);
@@ -162,6 +181,8 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 		// add the pointcloud to the queue
 		this->clouds_not_transformed.push(spcl);
 	}
+
+    spcl.reset();
 
 }
 

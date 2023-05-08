@@ -42,6 +42,7 @@ class PointCloudsManager {
 		pcl::PointCloud<pcl::PointXYZRGBL>::Ptr mergedCloud; // the merged cloud
 		bool mergedCloudDownsampled = false; // prevent double downsampling
 
+        std::mutex cloudMutex;
 		std::mutex managersMutex; // mutex to protect the stream managers
 		
 

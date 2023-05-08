@@ -21,19 +21,30 @@
 #define ROBOT_BASE "base_link"
 #define AGGREGATOR_PUBLISH_RATE 10 // Hz
 
-#define NUM_SPINNER_THREADS 16
+#define NUM_SPINNER_THREADS 32
+#define N_THREADS_IN_CALLBACK_POOL 128
 
-#define PCL_QUEUES_LEN 1000000
+#define PCL_QUEUES_LEN 1000
 
 void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub, PCLRegistrator *registrator) {
 
-    if(registrator->getPointCloud().empty())
+    pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator->getPointCloud();
+
+    if(pointcloud.empty())
+        return;
+
+    if(pointcloud.points.size() != pointcloud.width * pointcloud.height)
         return;
 
     sensor_msgs::PointCloud2 ros_cloud;
 
     // convert the PCL pointcloud to the ROS PointCloud2 format
-	pcl::toROSMsg(registrator->getPointCloud(), ros_cloud);
+    try {
+	    pcl::toROSMsg(pointcloud, ros_cloud);
+    } catch (std::exception& e) {
+        ROS_ERROR("Error converting pointcloud to ROS format: %s", e.what());
+        return;
+    }
 	ros_cloud.header.frame_id = registrator->getRobotFrame();
 
 	// publish the PointCloud
@@ -73,6 +84,9 @@ int main(int argc, char **argv) {
     // set the robot base frame
     registrator->setRobotFrame(robot_base);
 
+    // create a callback thread pool
+    boost::asio::thread_pool pool(N_THREADS_IN_CALLBACK_POOL);
+
     // initialize the subscribers
     #pragma omp parallel for
     for(int i = 0; i < n_pointclouds; i++) {
@@ -80,7 +94,7 @@ int main(int argc, char **argv) {
         topicName = "";
         topicName.append(SUB_POINTCLOUD_TOPIC);
         topicName.append(std::to_string(i));
-        ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName));
+        ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName, &pool));
         pcl_subscribers.push_back(sub);
         ROS_INFO("Subscribing to %s", topicName.c_str());
     }

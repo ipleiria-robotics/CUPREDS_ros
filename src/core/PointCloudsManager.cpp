@@ -32,9 +32,14 @@ size_t PointCloudsManager::getNClouds() {
 
 bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& input) {
 
+    if(input.get() == nullptr)
+        return false;
+
 	// align the pointclouds
     if(!input->empty()) {
+        this->cloudMutex.lock();
         if(!this->mergedCloud->empty()) {
+            /*
             // create an ICP instance
             pcl::IterativeClosestPoint<pcl::PointXYZRGBL, pcl::PointXYZRGBL> icp;
             icp.setInputSource(input);
@@ -49,10 +54,14 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGBL>
                 *this->mergedCloud += *input; // if alignment was not possible, just add the pointclouds
 
             return icp.hasConverged(); // return true if alignment was possible
+            */
+
+            *this->mergedCloud += *input;
             
         } else {
-            *this->mergedCloud += *input;
+            *this->mergedCloud = *input;
         }
+        this->cloudMutex.unlock();
         
     }
 
@@ -60,6 +69,13 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGBL>
 }
 
 void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, const std::string& topicName) {
+
+    if(cloud == nullptr)
+        return;
+    if(cloud->empty()) {
+        cloud.reset();
+        return;
+    }
 
     // the key is not present
     this->initStreamManager(topicName, this->max_age);
