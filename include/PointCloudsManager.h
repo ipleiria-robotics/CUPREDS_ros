@@ -54,10 +54,10 @@ class PointCloudsManager {
 	public:
 		PointCloudsManager(size_t n_sources, double max_age);
 		~PointCloudsManager();
-		size_t getNClouds();
-		void addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, const std::string& topicName);
+		size_t getNClouds() const;
+		void addCloud(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud, const std::string& topicName);
 		void setTransform(const Eigen::Affine3d& transformEigen, const std::string& topicName);
-        void initStreamManager(std::string topicName, double max_age);
+        void initStreamManager(const std::string& topicName, double max_age);
 
 		pcl::PointCloud<pcl::PointXYZRGBL> getMergedCloud();
 };

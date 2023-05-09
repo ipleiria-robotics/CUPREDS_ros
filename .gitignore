@@ -2,3 +2,5 @@ build/
 devel/
 .vscode/
 .idea/
+singularity/*.sif
+singularity/overlay_dir

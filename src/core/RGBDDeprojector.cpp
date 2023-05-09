@@ -16,11 +16,11 @@ RGBDDeprojector::~RGBDDeprojector() {
 
 }
 
-Eigen::Matrix<double, 3, 3> RGBDDeprojector::getK() {
+Eigen::Matrix<double, 3, 3> RGBDDeprojector::getK() const {
     return this->K;
 }
 
-void RGBDDeprojector::setK(Eigen::Matrix<double, 3, 3> K) {
+void RGBDDeprojector::setK(const Eigen::Matrix3d& K) {
     ROS_INFO("K updated");
     this->K = K;
 }
@@ -29,7 +29,7 @@ ros::Publisher RGBDDeprojector::getPointCloudPublisher() {
     return *this->point_cloud_pub;
 }
 
-void RGBDDeprojector::setPointCloudPublisher(std::shared_ptr<ros::Publisher> point_cloud_pub) {
+void RGBDDeprojector::setPointCloudPublisher(const std::shared_ptr<ros::Publisher>& point_cloud_pub) {
     this->point_cloud_pub = std::move(point_cloud_pub);
 }
 

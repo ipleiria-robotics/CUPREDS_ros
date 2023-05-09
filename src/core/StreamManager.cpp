@@ -13,7 +13,7 @@
 #define STREAM_ICP_MAX_CORRESPONDENCE_DISTANCE 1
 #define STREAM_ICP_MAX_ITERATIONS 10
 
-StreamManager::StreamManager(std::string topicName) {
+StreamManager::StreamManager(const std::string& topicName) {
     this->topicName = topicName;
     this->cloud = std::make_shared<StampedPointCloud>(topicName);
 }
@@ -26,7 +26,7 @@ bool StreamManager::operator==(const StreamManager &other) const {
     return this->topicName == other.topicName;
 }
 
-void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
+void StreamManager::removePointCloud(const std::shared_ptr<StampedPointCloud>& spcl) {
 
     // remove points with that label from the merged pointcloud
     this->cloud->removePointsWithLabel(spcl->getLabel());
@@ -43,8 +43,6 @@ void StreamManager::removePointCloud(std::shared_ptr<StampedPointCloud> spcl) {
             ++it;
         }
     }
-
-    spcl.reset();
 }
 
 void StreamManager::computeTransform() {
@@ -69,9 +67,8 @@ void StreamManager::computeTransform() {
 }
 
 // this is a routine to call from a thread to transform a pointcloud
-void applyTransformRoutine(StreamManager *instance, std::shared_ptr<StampedPointCloud> spcl, Eigen::Affine3d tf) {
+void applyTransformRoutine(StreamManager *instance, const std::shared_ptr<StampedPointCloud>& spcl, const Eigen::Affine3d& tf) {
 	spcl->applyTransform(tf);
-    spcl.reset();
 }
 
 // this is a routine to call from a thread to clear the pointclouds which don't meet the criteria
@@ -82,34 +79,31 @@ void clearPointCloudsRoutine(StreamManager *instance) {
 // this routine is called in a thread
 // this allow to automatically remove the pointclouds which are older than the max age
 // as well as the removal is lazy, so it doesn't lock the main thread
-void pointCloudAutoRemoveRoutine(StreamManager* instance, std::shared_ptr<StampedPointCloud> spcl) {
+void pointCloudAutoRemoveRoutine(StreamManager* instance, const std::shared_ptr<StampedPointCloud>& spcl) {
 
     // sleep for the max age
     std::this_thread::sleep_for(std::chrono::milliseconds(
             static_cast<long long>(instance->max_age * 1000)));
 
     // call the pointcloud removal method
-    instance->removePointCloud(std::move(spcl));
+    instance->removePointCloud(spcl);
 }
 
-void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eigen::Matrix4f tf) {
+void icpTransformPointCloudRoutine(const std::shared_ptr<StampedPointCloud>& spcl, const Eigen::Matrix4f& tf) {
 
     spcl->applyIcpTransform(tf);
-    spcl.reset();
 }
 
-void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
+void StreamManager::addCloud(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud) {
 
     if(cloud == nullptr)
         return;
-    if(cloud->empty()) {
-        cloud.reset();
+    if(cloud->empty())
         return;
-    }
 
 	// create a stamped point cloud object to keep this pointcloud
    	std::shared_ptr<StampedPointCloud> spcl = std::make_shared<StampedPointCloud>(this->topicName);
-	spcl->setPointCloud(std::move(cloud));
+	spcl->setPointCloud(cloud);
 
 	if(this->sensorTransformSet) {
 		// transform the incoming pointcloud and add directly to the set
@@ -186,11 +180,11 @@ void StreamManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud) {
 
 }
 
-pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StreamManager::getCloud() {
+pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StreamManager::getCloud() const {
 	return this->cloud->getPointCloud();
 }
 
-void StreamManager::setSensorTransform(Eigen::Affine3d transform) {
+void StreamManager::setSensorTransform(const Eigen::Affine3d& transform) {
 
     std::lock_guard<std::mutex> lock(this->sensorTransformMutex);
     
@@ -204,7 +198,7 @@ void StreamManager::setMaxAge(double max_age) {
 	this->max_age = max_age;
 }
 
-double StreamManager::getMaxAge() {
+double StreamManager::getMaxAge() const {
 	return this->max_age;
 }
 

@@ -37,28 +37,30 @@ class StampedPointCloud {
         std::uint32_t label; // pointcloud label to allow removal
         std::uint32_t generateLabel();
 
+        std::mutex cloudMutex;
+
         bool icpTransformComputed = false;
 
     public:
-        StampedPointCloud(std::string originTopic);
+        StampedPointCloud(const std::string& originTopic);
         ~StampedPointCloud();
 
-        unsigned long long getTimestamp();
-        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr getPointCloud() const;
-        std::string getOriginTopic();
-        std::uint32_t getLabel();
-        bool isIcpTransformComputed();
+        unsigned long long getTimestamp() const;
+        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr getPointCloud();
+        std::string getOriginTopic() const;
+        std::uint32_t getLabel() const;
+        bool isIcpTransformComputed() const;
 
         void setTimestamp(unsigned long long t);
-        void setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, bool assignGeneratedLabel=true);
-        void setOriginTopic(std::string origin);
+        void setPointCloud(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud, bool assignGeneratedLabel=true);
+        void setOriginTopic(const std::string& origin);
 
         bool isTransformComputed() const;
-        void applyTransform(Eigen::Affine3d tf);
+        void applyTransform(const Eigen::Affine3d& tf);
 
-        void applyIcpTransform(Eigen::Matrix4f tf);
+        void applyIcpTransform(const Eigen::Matrix4f& tf);
 
-        void assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label);
+        void assignLabelToPointCloud(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud, std::uint32_t label);
 
         void removePointsWithLabel(std::uint32_t label);
 
@@ -71,7 +73,7 @@ class StampedPointCloud {
 // they are compared by timestamp
 struct CompareStampedPointCloudPointers {
 
-    bool operator()(std::shared_ptr<StampedPointCloud> first, std::shared_ptr<StampedPointCloud> second) const {
+    bool operator()(const std::shared_ptr<StampedPointCloud>& first, const std::shared_ptr<StampedPointCloud>& second) const {
         return first->getTimestamp() < second->getTimestamp();
     }
 };

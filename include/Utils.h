@@ -16,8 +16,8 @@ class Utils {
         static unsigned long long getCurrentTimeMillis();
         static long getAgeInSecs(unsigned long long timestamp);
         static unsigned long long getMaxTimestampForAge(double age);
-        static void removePointCloudFromOther(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud,
-                                              pcl::PointCloud<pcl::PointXYZRGBL>::Ptr pointsToRemove);
+        static void removePointCloudFromOther(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud,
+                                              const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& pointsToRemove);
 };
 
 #endif

@@ -1,6 +1,6 @@
 #include "cuda_pointclouds.hu"
 
-__host__ void setPointCloudLabelCuda(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label) {
+__host__ void setPointCloudLabelCuda(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud, std::uint32_t label) {
     cudaError_t err = cudaSuccess;
     cudaStream_t stream;
 
@@ -53,8 +53,6 @@ __host__ void setPointCloudLabelCuda(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr clo
         std::cerr << "Error destroying the CUDA stream: " << cudaGetErrorString(err) << std::endl;
         return;
     }
-
-    cloud.reset();
 }
 
 __global__ void setPointLabelKernel(pcl::PointXYZRGBL *points, std::uint32_t label, int num_points) {
@@ -64,7 +62,7 @@ __global__ void setPointLabelKernel(pcl::PointXYZRGBL *points, std::uint32_t lab
     }
 }
 
-__host__ void transformPointCloudCuda(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, Eigen::Affine3d tf) {
+__host__ void transformPointCloudCuda(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud, Eigen::Affine3d tf) {
 
     cudaError_t err = cudaSuccess;
     cudaStream_t stream;

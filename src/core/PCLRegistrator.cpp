@@ -19,6 +19,8 @@ PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age) {
 }
 
 PCLRegistrator::~PCLRegistrator() {
+    this->manager.reset();
+    this->tfListener.reset();
 }
 
 // initialize the sources manager with the number of sources and configured max pointcloud age
@@ -26,7 +28,7 @@ void PCLRegistrator::initializeManager() {
     this->manager = std::make_shared<PointCloudsManager>(n_sources, max_pointcloud_age);
 }
 
-void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
+void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName) {
     ROS_INFO("New pointcloud from %s", topicName.c_str());
 
     // convert from the ROS to the PCL format
@@ -72,7 +74,7 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
 }
 
 // called when any new pointcloud is received
-void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName, boost::asio::thread_pool* pool) {
+void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName, boost::asio::thread_pool* pool) {
 
     boost::asio::post(*pool, [this, msg, topicName]
     { return pointcloudCallbackRoutine(this, msg, topicName); });
@@ -91,7 +93,7 @@ std::string PCLRegistrator::getRobotFrame() {
     return this->robotFrame;
 }
 
-void PCLRegistrator::setRobotFrame(std::string robotFrame) {
+void PCLRegistrator::setRobotFrame(const std::string& robotFrame) {
     this->robotFrame = robotFrame;
 }
 

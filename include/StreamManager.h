@@ -48,31 +48,31 @@ class StreamManager {
         std::mutex cloudMutex;
         std::mutex sensorTransformMutex;
 
-        void removePointCloud(std::shared_ptr<StampedPointCloud> spcl);
+        void removePointCloud(const std::shared_ptr<StampedPointCloud>& spcl);
 
     public:
-        StreamManager(std::string topicName);
+        StreamManager(const std::string& topicName);
 		~StreamManager();
 
         bool operator==(const StreamManager& other) const;
 
-		void addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud);
-		pcl::PointCloud<pcl::PointXYZRGBL>::Ptr getCloud(); // returning the pointer prevents massive memory copies
-        void setSensorTransform(Eigen::Affine3d transform);
+		void addCloud(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud);
+		pcl::PointCloud<pcl::PointXYZRGBL>::Ptr getCloud() const; // returning the pointer prevents massive memory copies
+        void setSensorTransform(const Eigen::Affine3d& transform);
 
         void setMaxAge(double max_age);
-        double getMaxAge();
+        double getMaxAge() const;
 
         void clear();
 
-    friend void applyTransformRoutine(StreamManager* instance, std::shared_ptr<StampedPointCloud> spcl, Eigen::Affine3d tf);
+    friend void applyTransformRoutine(StreamManager* instance, const std::shared_ptr<StampedPointCloud>& spcl, const Eigen::Affine3d& tf);
     friend void clearPointCloudsRoutine(StreamManager* instance);
 
     // intended to be called from a thread the moment the StampedPointCloud is created
     friend void pointCloudAutoRemoveRoutine(StreamManager* instance,
-                                            std::shared_ptr<StampedPointCloud> spcl);
+                                            const std::shared_ptr<StampedPointCloud>& spcl);
 
-    friend void icpTransformPointCloudRoutine(std::shared_ptr<StampedPointCloud> spcl, Eigen::Matrix4f tf);
+    friend void icpTransformPointCloudRoutine(const std::shared_ptr<StampedPointCloud>& spcl, const Eigen::Matrix4f& tf);
 
 };
 

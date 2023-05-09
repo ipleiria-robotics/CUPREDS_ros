@@ -8,18 +8,20 @@
 
 #include "StampedPointCloud.h"
 
-StampedPointCloud::StampedPointCloud(std::string originTopic) {
+StampedPointCloud::StampedPointCloud(const std::string& originTopic) {
     this->timestamp = Utils::getCurrentTimeMillis();
 
     this->setOriginTopic(originTopic);
 
     this->label = generateLabel();
 
+    std::lock_guard<std::mutex> lock(this->cloudMutex);
     this->cloud = pcl::PointCloud<pcl::PointXYZRGBL>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBL>());
 }
 
 StampedPointCloud::~StampedPointCloud() {
     // free the pointcloud
+    std::lock_guard<std::mutex> lock(this->cloudMutex);
     if(this->cloud != nullptr)
         this->cloud.reset();
 }
@@ -34,23 +36,24 @@ std::uint32_t StampedPointCloud::generateLabel() {
     return hash_value;
 }
 
-unsigned long long StampedPointCloud::getTimestamp() {
+unsigned long long StampedPointCloud::getTimestamp() const {
     return this->timestamp;
 }
 
-pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StampedPointCloud::getPointCloud() const {
+pcl::PointCloud<pcl::PointXYZRGBL>::Ptr StampedPointCloud::getPointCloud() {
+    std::lock_guard<std::mutex> lock(this->cloudMutex);
     return this->cloud;
 }
 
-std::string StampedPointCloud::getOriginTopic() {
+std::string StampedPointCloud::getOriginTopic() const {
     return this->originTopic;
 }
 
-std::uint32_t StampedPointCloud::getLabel() {
+std::uint32_t StampedPointCloud::getLabel() const {
     return this->label;
 }
 
-bool StampedPointCloud::isIcpTransformComputed() {
+bool StampedPointCloud::isIcpTransformComputed() const {
     return icpTransformComputed;
 }
 
@@ -58,10 +61,11 @@ void StampedPointCloud::setTimestamp(unsigned long long t) {
     this->timestamp = t;
 }
 
-void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c, bool assignGeneratedLabel) {
+void StampedPointCloud::setPointCloud(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& c, bool assignGeneratedLabel) {
     if(c == nullptr)
         return;
 
+    std::lock_guard<std::mutex> lock(this->cloudMutex);
     this->cloud.reset(c.get());
 
     this->cloudSet = true;
@@ -69,16 +73,15 @@ void StampedPointCloud::setPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr c,
     if(assignGeneratedLabel)
         this->assignLabelToPointCloud(this->cloud, this->label);
 
-    c.reset();
 }
 
-void StampedPointCloud::assignLabelToPointCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, std::uint32_t label) {
+void StampedPointCloud::assignLabelToPointCloud(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud, std::uint32_t label) {
 
+    std::lock_guard<std::mutex> lock(this->cloudMutex);
     setPointCloudLabelCuda(cloud, label);
-    cloud.reset();
 }
 
-void StampedPointCloud::setOriginTopic(std::string origin) {
+void StampedPointCloud::setOriginTopic(const std::string& origin) {
     this->originTopic = origin;
 }
 
@@ -86,10 +89,11 @@ bool StampedPointCloud::isTransformComputed() const {
     return this->transformComputed;
 }
 
-void StampedPointCloud::applyTransform(Eigen::Affine3d tf) {
+void StampedPointCloud::applyTransform(const Eigen::Affine3d& tf) {
     // TODO: transform the pointcloud. have in mind they are smart pointers, 
     // attention to performance issues
-    if(this->cloudSet) {
+    std::lock_guard<std::mutex> lock(this->cloudMutex);
+    if(this->cloud != nullptr) {
 
         transformPointCloudCuda(this->cloud, tf);
 
@@ -98,7 +102,7 @@ void StampedPointCloud::applyTransform(Eigen::Affine3d tf) {
     }
 }
 
-void StampedPointCloud::applyIcpTransform(Eigen::Matrix4f tf) {
+void StampedPointCloud::applyIcpTransform(const Eigen::Matrix4f& tf) {
 
     if(!icpTransformComputed) {
 
@@ -113,6 +117,7 @@ void StampedPointCloud::applyIcpTransform(Eigen::Matrix4f tf) {
 
 void StampedPointCloud::removePointsWithLabel(std::uint32_t label) {
 
+    std::lock_guard<std::mutex> lock(this->cloudMutex);
     if(this->cloud == nullptr)
         return;
 
@@ -120,5 +125,5 @@ void StampedPointCloud::removePointsWithLabel(std::uint32_t label) {
                                      [label](const auto& element) { return element.label == label; }),
                       this->cloud->end());
 
-    this->cloud.reset();
+    // this->cloud.reset();
 }

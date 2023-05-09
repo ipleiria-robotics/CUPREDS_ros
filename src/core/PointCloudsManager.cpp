@@ -24,9 +24,13 @@ PointCloudsManager::PointCloudsManager(size_t n_sources, double max_age) {
 
 PointCloudsManager::~PointCloudsManager() {
     // TODO: delete all instances of StreamManagers on the hashtable and set
+    for(auto it = this->streamManagers.begin(); it != this->streamManagers.end(); ++it) {
+        this->streamManagers.erase(it);
+    }
+    this->mergedCloud.reset();
 }
 
-size_t PointCloudsManager::getNClouds() {
+size_t PointCloudsManager::getNClouds() const {
 	return this->n_sources;
 }
 
@@ -68,19 +72,17 @@ bool PointCloudsManager::appendToMerged(const pcl::PointCloud<pcl::PointXYZRGBL>
 	return false;
 }
 
-void PointCloudsManager::addCloud(pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud, const std::string& topicName) {
+void PointCloudsManager::addCloud(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& cloud, const std::string& topicName) {
 
     if(cloud == nullptr)
         return;
-    if(cloud->empty()) {
-        cloud.reset();
+    if(cloud->empty())
         return;
-    }
 
     // the key is not present
     this->initStreamManager(topicName, this->max_age);
 
-    this->streamManagers[topicName]->addCloud(std::move(cloud));
+    this->streamManagers[topicName]->addCloud(cloud);
 
 }
 
@@ -91,7 +93,7 @@ void PointCloudsManager::setTransform(const Eigen::Affine3d& transformEigen, con
 	this->streamManagers[topicName]->setSensorTransform(transformEigen);
 }
 
-void PointCloudsManager::initStreamManager(std::string topicName, double max_age) {
+void PointCloudsManager::initStreamManager(const std::string& topicName, double max_age) {
 
     std::lock_guard<std::mutex> lock(this->managersMutex);
 

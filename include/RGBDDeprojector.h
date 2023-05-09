@@ -45,11 +45,11 @@ class RGBDDeprojector {
         RGBDDeprojector();
         ~RGBDDeprojector();
 
-        Eigen::Matrix3d getK();
-        void setK(Eigen::Matrix3d K);
+        Eigen::Matrix3d getK() const;
+        void setK(const Eigen::Matrix3d& K);
 
         ros::Publisher getPointCloudPublisher();
-        void setPointCloudPublisher(std::shared_ptr<ros::Publisher> point_cloud_pub);
+        void setPointCloudPublisher(const std::shared_ptr<ros::Publisher>& point_cloud_pub);
 
         void depthInfoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg);
         void depthImageCallback(const sensor_msgs::Image::ConstPtr& msg);
