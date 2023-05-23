@@ -1,0 +1,56 @@
+Bootstrap: docker
+From: osrf/ros:noetic-desktop-full
+
+%environment
+    export LC_ALL=C
+    # add the cuda libraries to the system variable
+    export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+    # add the cuda compiler to the path
+    export PATH=/usr/local/cuda/bin:$PATH
+
+%files
+    /usr/local/cuda /usr/local/cuda
+
+# Tool downloading and installations, write configurations, create directories, etc.
+# NOTE: Should be used to setup BUILD time environment variables.
+%post
+
+    # install the dependencies
+    apt-get update
+
+    apt-get install -y \
+        ros-$ROS_DISTRO-sensor-msgs \
+        ros-$ROS_DISTRO-tf2-sensor-msgs \
+        python3-catkin-tools \
+        libpcl-dev \
+        libopencv-dev \
+        libeigen3-dev \
+        vim \
+        git \
+        xauth \
+        wget \
+        doxygen
+
+    # create the workspace
+    mkdir -p /home/labrob/catkin_ws/src/pcl_aggregator
+
+    # clone the core library
+    cd /home/labrob
+    git clone -b dev https://github.com/carlostojal/pcl_aggregator_core.git
+    cd pcl_aggregator_core
+    # build the library
+    mkdir build && cd build
+    cmake ..
+    make -j8
+    # install
+    make install
+
+    # navigate to the workspace
+    cd /home/labrob/catkin_ws
+
+%labels
+    Author carlos.tojal@hotmail.com
+    Version v0.0.1
+
+%help
+    Singularity image built from ROS Noetic and aggregator dependencies.

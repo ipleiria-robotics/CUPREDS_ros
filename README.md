@@ -20,11 +20,20 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 - OpenCV
 
 ## Build
+### Bare metal
 - Install the dependencies.
 - Clone the package to a ROS workspace.
 - Build the workspace: ```catkin_make```.
 - Source the workspace setup: ```source devel/setup.bash```.
 - Start the nodes as needed.
+
+### Singularity
+- Install singularity. It is recommended to follow the official documentation.
+- Install X.org X server on the host, if not already installed.
+- Run the script ```singularity/build.sh```. It can take some time, wait for it to finish.
+- Run the script ```singularity/run.sh``` **as superuser**. You should now be inside the container.
+- Run ```source /opt/ros/noetic/setup.bash``` and ```catkin_make``` to build the ROS wrapper.
+- From now on, it's up to you :)
 
 ## Nodes
 ### pcl_aggregator_node
