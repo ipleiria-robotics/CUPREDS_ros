@@ -1,8 +1,5 @@
-cmake_minimum_required(VERSION 3.16)
-
-set(CMAKE_CUDA_ARCHITECTURES 89)
-
-project(pcl_aggregator LANGUAGES CXX CUDA)
+cmake_minimum_required(VERSION 3.8)
+project(pcl_aggregator)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -88,27 +85,19 @@ find_package(catkin REQUIRED)
 ##   * uncomment the "generate_dynamic_reconfigure_options" section below
 ##     and list every .cfg file to be processed
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs sensor_msgs geometry_msgs pcl_conversions cv_bridge tf2_ros tf2_eigen)
-find_package(Eigen3 REQUIRED)
-find_package(PCL REQUIRED COMPONENTS common cuda_common gpu_features kdtree filters registration)
+find_package(pcl_aggregator_core REQUIRED)
 find_package(OpenMP REQUIRED)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
-find_package(OpenCV REQUIRED)
-find_package(CUDA REQUIRED)
+find_package(Boost REQUIRED)
 
 set(CMAKE_BUILD_TYPE "Debug")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
-
-set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
-set(CMAKE_CUDA_STANDARD 14)
-set(CMAKE_CUDA_ARCHITECTURES 89)
-# set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -fPIC")
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
@@ -141,10 +130,8 @@ catkin_package(
 include_directories(
 include
 ${catkin_INCLUDE_DIRS}
-${PCL_INCLUDE_DIRS}
-${Eigen_INCLUDE_DIRS}
-${OpenCV_INCLUDE_DIRS}
-${CUDA_INCLUDE_DIRS}
+${Boost_INCLUDE_DIRS}
+${pcl_aggregator_core_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -162,33 +149,17 @@ ${CUDA_INCLUDE_DIRS}
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/pcl_aggregator_node.cpp)
 
-set(CORE_SOURCE_DIR include)
-
 # compile the RGBDDeprojector class with nvcc, because we are calling a cuda kernel
 # cuda_add_library(cuda_pointclouds STATUS src/core/cuda_pointclouds.cu)
-add_library(StampedPointCloud STATIC src/core/StampedPointCloud.cpp src/core/cuda_pointclouds.cu)
-add_library(RGBDDeprojector STATIC src/core/RGBDDeprojector.cpp)
-add_library(PCLRegistrator STATIC src/core/PCLRegistrator.cpp)
-add_library(StreamManager STATIC src/core/StreamManager.cpp)
-add_library(PointCloudList STATIC src/core/PointCloudList.cpp)
-add_library(PointCloudsManager STATIC src/core/PointCloudsManager.cpp)
-add_library(Utils STATIC src/core/Utils.cpp)
 
 # set_target_properties(StampedPointCloud PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 # set_target_properties(StampedPointCloud PROPERTIES POSITION_INDEPENDENT_CODE OFF)
 # target_compile_options(StampedPointCloud PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler -fPIC>)
 
-add_executable(
-    rgbd_deprojector_node src/nodes/rgbd_deprojector_node.cpp
-)
-add_dependencies(StreamManager StampedPointCloud Utils)
-# add_dependencies(rgbd_deprojector_node RGBDDeprojector)
-add_dependencies(PointCloudsManager PointCloudList StreamManager Utils)
-add_dependencies(PCLRegistrator PointCloudsManager)
-# add_dependencies(StampedPointCloud cuda_pointclouds)
+# add_executable(rgbd_deprojector_node src/nodes/rgbd_deprojector_node.cpp)
 
 add_executable(
-    pcl_aggregator_node src/nodes/pcl_aggregator_node.cpp
+    pcl_aggregator_node src/nodes/pcl_aggregator_node.cpp src/core/PCLRegistrator.cpp
 )
 
 ## Rename C++ executable without prefix
@@ -206,14 +177,8 @@ add_executable(
 #   ${catkin_LIBRARIES}
 # )
 # target_link_libraries(cuda_pointclouds ${CUDA_LIBRARIES})
-target_link_libraries(StampedPointCloud ${PCL_LIBRARIES} ${Eigen_LIBRARIES} ${CUDA_LIBRARIES})
-target_link_libraries(StreamManager ${PCL_LIBRARIES} StampedPointCloud Utils)
-target_link_libraries(RGBDDeprojector ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CUDA_LIBRARIES} ${OPENMP_LIBRARIES} ${OpenCV_LIBS})
-target_link_libraries(PointCloudList ${PCL_LIBRARIES})
-target_link_libraries(PointCloudsManager ${PCL_LIBRARIES} ${OPENMP_LIBRARIES} PointCloudList StreamManager Utils pcl_search)
-target_link_libraries(PCLRegistrator ${catkin_LIBRARIES} PointCloudsManager)
-target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} ${PCL_LIBRARIES} PCLRegistrator)
-target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} RGBDDeprojector)
+target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} ${Boost_LIBRARIES} pcl_aggregator_core)
+# target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} ${pcl_aggregator_core_LIBRARIES})
 
 #############
 ## Install ##

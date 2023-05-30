@@ -6,10 +6,11 @@
 */
 #include "PCLRegistrator.h"
 
-PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age) {
+PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age, size_t max_memory) {
     // get the number of sources and maximum pointcloud age
     this->n_sources = n_sources;
     this->max_pointcloud_age = max_pointcloud_age;
+    this->max_memory = max_memory;
 
     // initialize the tf listener and buffer
     this->tfListener = std::make_shared<tf2_ros::TransformListener>(this->tfBuffer, true);
@@ -20,12 +21,11 @@ PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age) {
 
 PCLRegistrator::~PCLRegistrator() {
     this->manager.reset();
-    this->tfListener.reset();
 }
 
 // initialize the sources manager with the number of sources and configured max pointcloud age
 void PCLRegistrator::initializeManager() {
-    this->manager = std::make_shared<PointCloudsManager>(n_sources, max_pointcloud_age);
+    this->manager = std::make_shared<pcl_aggregator::managers::PointCloudsManager>(n_sources, max_pointcloud_age, max_memory);
 }
 
 void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName) {
@@ -74,12 +74,14 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
 }
 
 // called when any new pointcloud is received
-void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName, boost::asio::thread_pool* pool) {
+void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName, boost::asio::thread_pool *pool) {
 
+    /*
+    auto pointcloudRoutine = [] (PCLRegistrator *instance, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
+        pointcloudCallback(instance, msg, topicName);
+    }*/
     boost::asio::post(*pool, [this, msg, topicName]
     { return pointcloudCallbackRoutine(this, msg, topicName); });
-
-    // pointcloudCallbackRoutine(this, msg, topicName);
 
     /*
     // call the routine on a new thread

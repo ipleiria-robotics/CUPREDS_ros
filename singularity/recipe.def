@@ -14,6 +14,8 @@ From: osrf/ros:noetic-desktop-full
 # Tool downloading and installations, write configurations, create directories, etc.
 # NOTE: Should be used to setup BUILD time environment variables.
 %post
+
+    # install the dependencies
     apt-get update
 
     apt-get install -y \
@@ -26,10 +28,24 @@ From: osrf/ros:noetic-desktop-full
         vim \
         git \
         xauth \
-        wget
+        wget \
+        doxygen
 
     # create the workspace
     mkdir -p /home/labrob/catkin_ws/src/pcl_aggregator
+
+    # clone the core library
+    cd /home/labrob
+    git clone -b dev https://github.com/carlostojal/pcl_aggregator_core.git
+    cd pcl_aggregator_core
+    # build the library
+    mkdir build && cd build
+    cmake ..
+    make -j8
+    # install
+    make install
+
+    # navigate to the workspace
     cd /home/labrob/catkin_ws
 
 %labels
@@ -38,4 +54,3 @@ From: osrf/ros:noetic-desktop-full
 
 %help
     Singularity image built from ROS Noetic and aggregator dependencies.
-

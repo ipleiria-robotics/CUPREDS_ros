@@ -21,8 +21,10 @@
 #define ROBOT_BASE "base_link"
 #define AGGREGATOR_PUBLISH_RATE 10 // Hz
 
-#define NUM_SPINNER_THREADS 32
-#define N_THREADS_IN_CALLBACK_POOL 128
+#define MAX_MEMORY 5000
+
+#define NUM_SPINNER_THREADS 16
+#define N_THREADS_IN_CALLBACK_POOL 32
 
 #define PCL_QUEUES_LEN 1000
 
@@ -59,13 +61,14 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle nh;
 
-    int n_pointclouds, publish_rate;
+    int n_pointclouds, publish_rate, max_memory;
     double max_pointcloud_age;
     std::string robot_base;
 
     nh.param<int>("n_pointclouds", n_pointclouds, 1);
     nh.param<double>("max_pointcloud_age", max_pointcloud_age, MAX_POINTCLOUD_AGE);
     nh.param<int>("publish_rate", publish_rate, AGGREGATOR_PUBLISH_RATE);
+    nh.param<int>("max_memory", max_memory, MAX_MEMORY);
     nh.param<std::string>("robot_base", robot_base, ROBOT_BASE);
 
 	ros::CallbackQueue callback_queue;
@@ -76,7 +79,7 @@ int main(int argc, char **argv) {
 
 	ros::Publisher pub = nh.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, PCL_QUEUES_LEN);
 
-	PCLRegistrator *registrator = new PCLRegistrator(n_pointclouds, max_pointcloud_age);
+	PCLRegistrator *registrator = new PCLRegistrator(n_pointclouds, max_pointcloud_age, max_memory);
 
     // initialize the publisher on the registrator
     registrator->setPublisher(pub);
