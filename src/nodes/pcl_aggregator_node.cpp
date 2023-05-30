@@ -11,6 +11,8 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "tf/transform_listener.h"
+#include "pcl/io/pcd_io.h"
+#include "pcl_aggregator/SnapshotService.h"
 #include "PCLRegistrator.h"
 #include <memory>
 
@@ -51,6 +53,34 @@ void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub, PCLR
 
 	// publish the PointCloud
 	pub->publish(ros_cloud);
+}
+
+bool handleSnapshotServiceRequest(pcl_aggregator::SnapshotService& req, pcl_aggregator::SnapshotService& res, 
+    PCLRegistrator *registrator) {
+
+    pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator->getPointCloud();
+
+    if(pointcloud.empty())
+        return false;
+
+    if(pointcloud.points.size() != pointcloud.width * pointcloud.height)
+        return false;
+
+    // save the pointcloud to a file
+    std::string filename = req.filename;
+    if(filename.empty())
+        filename = "snapshot.pcd";
+
+    try {
+        pcl::io::savePCDFile(filename, pointcloud);
+    } catch (std::exception& e) {
+        ROS_ERROR("Error saving pointcloud to file: %s", e.what());
+        return false;
+    }
+
+    res.filename = filename;
+
+    return true;
 }
 
 int main(int argc, char **argv) {
@@ -101,6 +131,10 @@ int main(int argc, char **argv) {
         pcl_subscribers.push_back(sub);
         ROS_INFO("Subscribing to %s", topicName.c_str());
     }
+
+    // initialize the snapshot service
+    ros::ServiceServer snapshot_service = nh.advertiseService<pcl_aggregator::SnapshotService, pcl_aggregator::SnapshotService::Request, pcl_aggregator::SnapshotService::Response>(
+        "snapshot", boost::bind(&handleSnapshotServiceRequest, _1, _2, registrator));
 
     ROS_INFO("PointCloud aggregator node started.");
 
