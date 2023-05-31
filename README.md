@@ -35,6 +35,12 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 - Run ```source /opt/ros/noetic/setup.bash``` and ```catkin_make``` to build the ROS wrapper.
 - From now on, it's up to you :)
 
+### Docker
+I haven't searched yet how to use X.org on Docker containers.
+- Install Docker. It is recommended to follow the official documentation.
+- From this directory, run the command ```docker build -t pcl_aggregator .```. This might take a while, just wait.
+- You can then enter the container with ```docker run -it pcl_aggregator /bin/bash```.
+
 ## Nodes
 ### pcl_aggregator_node
 #### Parameters
@@ -47,6 +53,10 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 - ```pointcloudn```: PointCloud topics, where $0 \leq n < n_{pointclouds}$. Example: ```pointcloud0```. Type: sensor_msgs/PointCloud2.
 #### Published topics
 - ```merged_pointcloud```: Merged PointCloud data. Type: sensor_msgs/PointCloud2.
+#### Services
+- ```snapshot```: Save locally a ```.pcd``` file of the current PointCloud generated.
+    - Input: filename (string)
+    - Output: filename (string)
 
 ### rgbd_deprojector_node
 #### Subscribed topics
