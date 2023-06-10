@@ -30,9 +30,10 @@
 
 #define PCL_QUEUES_LEN 1000
 
-void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub, PCLRegistrator *registrator) {
+void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub) {
 
-    pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator->getPointCloud();
+    PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0);
+    pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator.getPointCloud();
 
     if(pointcloud.empty())
         return;
@@ -49,16 +50,17 @@ void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub, PCLR
         ROS_ERROR("Error converting pointcloud to ROS format: %s", e.what());
         return;
     }
-	ros_cloud.header.frame_id = registrator->getRobotFrame();
+	ros_cloud.header.frame_id = registrator.getRobotFrame();
 
 	// publish the PointCloud
 	pub->publish(ros_cloud);
 }
 
-bool handleSnapshotServiceRequest(pcl_aggregator::SnapshotService& req, pcl_aggregator::SnapshotService& res, 
-    PCLRegistrator *registrator) {
+bool handleSnapshotServiceRequest(pcl_aggregator::SnapshotService::Request& req, pcl_aggregator::SnapshotService::Response& res) {
 
-    pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator->getPointCloud();
+    PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0);
+
+    pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator.getPointCloud();
 
     if(pointcloud.empty())
         return false;
@@ -67,7 +69,7 @@ bool handleSnapshotServiceRequest(pcl_aggregator::SnapshotService& req, pcl_aggr
         return false;
 
     // save the pointcloud to a file
-    std::string filename = req.filename;
+    std::string filename = req.input_filename;
     if(filename.empty())
         filename = "snapshot.pcd";
 
@@ -78,7 +80,7 @@ bool handleSnapshotServiceRequest(pcl_aggregator::SnapshotService& req, pcl_aggr
         return false;
     }
 
-    res.filename = filename;
+    res.output_filename = filename;
 
     return true;
 }
@@ -109,13 +111,13 @@ int main(int argc, char **argv) {
 
 	ros::Publisher pub = nh.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, PCL_QUEUES_LEN);
 
-	PCLRegistrator *registrator = new PCLRegistrator(n_pointclouds, max_pointcloud_age, max_memory);
+	PCLRegistrator &registrator = PCLRegistrator::getInstance(n_pointclouds, max_pointcloud_age, max_memory);
 
     // initialize the publisher on the registrator
-    registrator->setPublisher(pub);
+    registrator.setPublisher(pub);
 
     // set the robot base frame
-    registrator->setRobotFrame(robot_base);
+    registrator.setRobotFrame(robot_base);
 
     // create a callback thread pool
     boost::asio::thread_pool pool(N_THREADS_IN_CALLBACK_POOL);
@@ -127,19 +129,23 @@ int main(int argc, char **argv) {
         topicName = "";
         topicName.append(SUB_POINTCLOUD_TOPIC);
         topicName.append(std::to_string(i));
-        ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(topicName, PCL_QUEUES_LEN, boost::bind(&PCLRegistrator::pointcloudCallback, registrator, _1, topicName, &pool));
+        ros::Subscriber sub = nh.subscribe<sensor_msgs::PointCloud2>(
+            topicName, PCL_QUEUES_LEN,
+            [&registrator, topicName, &pool](const sensor_msgs::PointCloud2::ConstPtr& msg) {
+                registrator.pointcloudCallback(msg, topicName, &pool);
+            }
+        );
         pcl_subscribers.push_back(sub);
         ROS_INFO("Subscribing to %s", topicName.c_str());
     }
 
     // initialize the snapshot service
-    ros::ServiceServer snapshot_service = nh.advertiseService<pcl_aggregator::SnapshotService, pcl_aggregator::SnapshotService::Request, pcl_aggregator::SnapshotService::Response>(
-        "snapshot", boost::bind(&handleSnapshotServiceRequest, _1, _2, registrator));
+    ros::ServiceServer snapshot_service = nh.advertiseService("snapshot", handleSnapshotServiceRequest);
 
     ROS_INFO("PointCloud aggregator node started.");
 
     // create a timer to call the publisher
-    ros::Timer timer = nh.createTimer(ros::Duration(1.0 / publish_rate), boost::bind(&pointcloudPublishCallback, _1, &pub, registrator));
+    ros::Timer timer = nh.createTimer(ros::Duration(1.0 / publish_rate), boost::bind(&pointcloudPublishCallback, _1, &pub));
 
     // start the spinner
 	ros::AsyncSpinner spinner(NUM_SPINNER_THREADS, &callback_queue);
@@ -150,8 +156,6 @@ int main(int argc, char **argv) {
 
     // stop the spinner
 	spinner.stop();
-
-    delete registrator;
 
     return 0;
 }

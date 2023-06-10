@@ -6,6 +6,11 @@
 */
 #include "PCLRegistrator.h"
 
+PCLRegistrator& PCLRegistrator::getInstance(size_t n_sources, double max_age, size_t max_memory) {
+    static PCLRegistrator instance(n_sources, max_age, max_memory);  // Static instance of the singleton
+    return instance;
+}
+
 PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age, size_t max_memory) {
     // get the number of sources and maximum pointcloud age
     this->n_sources = n_sources;
@@ -28,7 +33,7 @@ void PCLRegistrator::initializeManager() {
     this->manager = std::make_shared<pcl_aggregator::managers::PointCloudsManager>(n_sources, max_pointcloud_age, max_memory);
 }
 
-void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName) {
+void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName) {
     ROS_INFO("New pointcloud from %s", topicName.c_str());
 
     // convert from the ROS to the PCL format
@@ -45,6 +50,8 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
         return;
     }
 
+    PCLRegistrator& pclRegistrator = PCLRegistrator::getInstance(0,0,0);
+
     try {
 
         // get the transform from the robot base to the pointcloud frame
@@ -54,7 +61,7 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
         */
 
         geometry_msgs::TransformStamped transform =
-            pclRegistrator->tfBuffer.lookupTransform(msg->header.frame_id, pclRegistrator->robotFrame, ros::Time(0));
+            pclRegistrator.tfBuffer.lookupTransform(msg->header.frame_id, pclRegistrator.robotFrame, ros::Time(0));
 
         // convert tf to Eigen homogenous transformation matrix
         Eigen::Affine3d transformEigen;
@@ -62,7 +69,7 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
         // invert the affine transformation
         transformEigen.matrix().inverse();
 
-        pclRegistrator->manager->setTransform(transformEigen, topicName);
+        pclRegistrator.manager->setTransform(transformEigen, topicName);
 
     } catch (tf2::TransformException &ex) {
         ROS_WARN("Error looking up the transform to '%s': %s", msg->header.frame_id.c_str(), ex.what());
@@ -70,18 +77,18 @@ void pointcloudCallbackRoutine(PCLRegistrator* pclRegistrator, const sensor_msgs
     }
 
     // feed the manager with the new pointcloud
-    pclRegistrator->manager->addCloud(std::move(cloud), topicName);
+    pclRegistrator.manager->addCloud(std::move(cloud), topicName);
 }
 
 // called when any new pointcloud is received
-void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName, boost::asio::thread_pool *pool) {
+void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg, std::string topicName, boost::asio::thread_pool *pool) {
 
     /*
     auto pointcloudRoutine = [] (PCLRegistrator *instance, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
         pointcloudCallback(instance, msg, topicName);
     }*/
-    boost::asio::post(*pool, [this, msg, topicName]
-    { return pointcloudCallbackRoutine(this, msg, topicName); });
+    boost::asio::post(*pool, [msg, topicName]
+    { return pointcloudCallbackRoutine(msg, topicName); });
 
     /*
     // call the routine on a new thread
