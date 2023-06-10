@@ -4,3 +4,4 @@ devel/
 .idea/
 singularity/*.sif
 singularity/overlay_dir
+singularity/build-temp*

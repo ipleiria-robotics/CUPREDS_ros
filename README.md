@@ -35,6 +35,14 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 - Run ```source /opt/ros/noetic/setup.bash``` and ```catkin_make``` to build the ROS wrapper.
 - From now on, it's up to you :)
 
+### Docker
+I haven't searched yet how to use X.org on Docker containers.
+- Install Docker. It is recommended to follow the official documentation.
+- Setup the NVIDIA Container Toolkit for Docker ([guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#install-guide)).
+- Make any changes you want to the configuration on the corresponding launch file `aggregator.launch`.
+- From this directory, run the command ```docker build -t pcl_aggregator .```. This may take a while, just wait. It will install all the dependencies and build the core library, install it, and build the package.
+- You can start the container with the running nodes with ```docker run --rm --runtime=nvidia --gpus all -it pcl_aggregator```.
+
 ## Nodes
 ### pcl_aggregator_node
 #### Parameters
@@ -47,6 +55,10 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 - ```pointcloudn```: PointCloud topics, where $0 \leq n < n_{pointclouds}$. Example: ```pointcloud0```. Type: sensor_msgs/PointCloud2.
 #### Published topics
 - ```merged_pointcloud```: Merged PointCloud data. Type: sensor_msgs/PointCloud2.
+#### Services
+- ```snapshot```: Save locally a ```.pcd``` file of the current PointCloud generated.
+    - Input: filename (string)
+    - Output: filename (string)
 
 ### rgbd_deprojector_node
 #### Subscribed topics
