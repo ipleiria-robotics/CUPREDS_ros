@@ -38,8 +38,10 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 ### Docker
 I haven't searched yet how to use X.org on Docker containers.
 - Install Docker. It is recommended to follow the official documentation.
-- From this directory, run the command ```docker build -t pcl_aggregator .```. This might take a while, just wait.
-- You can then enter the container with ```docker run -it pcl_aggregator /bin/bash```.
+- Setup the NVIDIA Container Toolkit for Docker ([guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#install-guide)).
+- Make any changes you want to the configuration on the corresponding launch file `aggregator.launch`.
+- From this directory, run the command ```docker build -t pcl_aggregator .```. This may take a while, just wait. It will install all the dependencies and build the core library, install it, and build the package.
+- You can start the container with the running nodes with ```docker run --rm --runtime=nvidia --gpus all -it pcl_aggregator```.
 
 ## Nodes
 ### pcl_aggregator_node
