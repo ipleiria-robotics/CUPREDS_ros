@@ -9,9 +9,9 @@ ENV PATH=/usr/local/cuda/bin:$PATH
 RUN apt update
 RUN apt install -y \
     build-essential \
-    ros-noetic-sensor-msgs \
-    ros-noetic-tf2-sensor-msgs \
+    python3 \
     python3-catkin-tools \
+    python3-rosdep \
     libpcl-dev \
     libopencv-dev \
     libeigen3-dev \
@@ -20,9 +20,6 @@ RUN apt install -y \
     xauth \
     wget \
     doxygen
-
-# create the workspace
-RUN mkdir -p /home/labrob/catkin_ws/src/pcl_aggregator
 
 # clone, build and install the core library
 WORKDIR /home/labrob
@@ -36,4 +33,22 @@ RUN make -j8
 # install
 RUN make install
 
-WORKDIR /home/labrob/catkin_ws
+# init rosdep
+RUN rosdep init
+RUN rosdep update
+
+# copy the ros package and build it
+RUN mkdir -p /catkin_ws/src/pcl_aggregator
+COPY . /catkin_ws/src/pcl_aggregator
+WORKDIR /catkin_ws
+# install dependencies
+RUN rosdep install --from-paths /catkin_ws --ignore-src --rosdistro noetic -y
+# build
+RUN /bin/bash -c "source /opt/ros/noetic/setup.bash && \
+    cd /catkin_ws && \
+    catkin_make"
+
+# launch the aggregator
+CMD /bin/bash -c "source /opt/ros/noetic/setup.bash && \
+    source /catkin_ws/devel/setup.bash && \
+    roslaunch pcl_aggregator aggregator.launch"
