@@ -41,7 +41,7 @@ I haven't searched yet how to use X.org on Docker containers.
 - Setup the NVIDIA Container Toolkit for Docker ([guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#install-guide)).
 - Make any changes you want to the configuration on the corresponding launch file `aggregator.launch`.
 - From this directory, run the command ```docker build -t pcl_aggregator .```. This may take a while, just wait. It will install all the dependencies and build the core library, install it, and build the package.
-- You can start the container with the running nodes with ```docker run --rm --runtime=nvidia --gpus all -it pcl_aggregator```.
+- You can start the container with the running nodes with `docker run --rm --runtime=nvidia --gpus all --network=host -it pcl_aggregator`.
 
 ## Nodes
 ### pcl_aggregator_node
