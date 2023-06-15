@@ -1,6 +1,6 @@
 <launch>
 
-    <param name="n_pointclouds" value="2" type="int" />
+    <param name="n_pointclouds" value="3" type="int" />
     <param name="robot_base" value="base_link" type="str" />
     <param name="max_pointcloud_age" value="1" type="double" />
 
@@ -8,5 +8,7 @@
 
         <remap to="/velodyne_points" from="pointcloud0" />
         <remap to="/os_cloud_node/points" from="pointcloud1" />
+        <remap to="/os_cloud_nodee/points" from="pointcloud1" />
+
     </node>
 </launch>
