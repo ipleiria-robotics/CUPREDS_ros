@@ -40,10 +40,10 @@ class PCLRegistrator
     public:
         static PCLRegistrator &getInstance(size_t n_sources, double max_age, size_t max_memory);
 
-        void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg, std::string topicName, boost::asio::thread_pool *pool);
+        void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg, const std::string& topicName, boost::asio::thread_pool *pool);
         std::string getRobotFrame();
         void setRobotFrame(const std::string &robotFrame);
-        void setPublisher(ros::Publisher point_cloud_pub);
+        void setPublisher(const ros::Publisher& point_cloud_pub);
         pcl::PointCloud<pcl::PointXYZRGBL> getPointCloud();
 
         // Disable copy construction and assignment operator

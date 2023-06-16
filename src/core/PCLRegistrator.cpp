@@ -34,7 +34,7 @@ void PCLRegistrator::initializeManager() {
 }
 
 void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName) {
-    ROS_INFO("New pointcloud from %s", topicName.c_str());
+    // ROS_INFO("New pointcloud from %s", topicName.c_str());
 
     // convert from the ROS to the PCL format
     pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBL>);
@@ -77,18 +77,22 @@ void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, co
     }
 
     // feed the manager with the new pointcloud
-    pclRegistrator.manager->addCloud(std::move(cloud), topicName);
+    pclRegistrator.manager->addCloud(cloud, topicName);
 }
 
 // called when any new pointcloud is received
-void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg, std::string topicName, boost::asio::thread_pool *pool) {
+void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg, const std::string& topicName, boost::asio::thread_pool *pool) {
 
     /*
     auto pointcloudRoutine = [] (PCLRegistrator *instance, const sensor_msgs::PointCloud2::ConstPtr& msg, std::string topicName) {
         pointcloudCallback(instance, msg, topicName);
     }*/
+
+    // schedule the routine to the thread pool
+    /*
     boost::asio::post(*pool, [msg, topicName]
     { return pointcloudCallbackRoutine(msg, topicName); });
+     */
 
     /*
     // call the routine on a new thread
@@ -96,6 +100,8 @@ void PCLRegistrator::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr
     // dettach the thread to stop blocking execution
     pointcloudThread.detach();
     */
+
+    pointcloudCallbackRoutine(msg, topicName);
 }
 
 std::string PCLRegistrator::getRobotFrame() {
@@ -106,10 +112,13 @@ void PCLRegistrator::setRobotFrame(const std::string& robotFrame) {
     this->robotFrame = robotFrame;
 }
 
-void PCLRegistrator::setPublisher(ros::Publisher point_cloud_pub) {
+void PCLRegistrator::setPublisher(const ros::Publisher& point_cloud_pub) {
     this->point_cloud_pub = point_cloud_pub;
 }
 
 pcl::PointCloud<pcl::PointXYZRGBL> PCLRegistrator::getPointCloud() {
-    return this->manager->getMergedCloud();
+    ROS_INFO("Requesting pointcloud");
+    pcl::PointCloud<pcl::PointXYZRGBL> c = this->manager->getMergedCloud();
+    ROS_INFO("Cloud size: %ld", c.size());
+    return c;
 }
