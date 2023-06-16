@@ -15,6 +15,7 @@
 #include "pcl_aggregator/SnapshotService.h"
 #include "PCLRegistrator.h"
 #include <memory>
+#include <functional>
 
 #define SUB_POINTCLOUD_TOPIC "pointcloud"
 #define POINTCLOUD_TOPIC "merged_pointcloud"
@@ -30,7 +31,7 @@
 
 #define PCL_QUEUES_LEN 1000
 
-void pointcloudPublishCallback(const ros::TimerEvent&, ros::Publisher* pub) {
+void pointcloudPublishCallback(ros::Publisher* pub) {
 
     PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0);
     pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator.getPointCloud();
@@ -123,7 +124,6 @@ int main(int argc, char **argv) {
     boost::asio::thread_pool pool(N_THREADS_IN_CALLBACK_POOL);
 
     // initialize the subscribers
-    #pragma omp parallel for
     for(int i = 0; i < n_pointclouds; i++) {
         std::string topicName;
         topicName = "";
@@ -142,17 +142,17 @@ int main(int argc, char **argv) {
     // initialize the snapshot service
     ros::ServiceServer snapshot_service = nh.advertiseService("snapshot", handleSnapshotServiceRequest);
 
+    // start the spinner
+    ros::AsyncSpinner spinner(NUM_SPINNER_THREADS, &callback_queue);
+    spinner.start();
+
     ROS_INFO("PointCloud aggregator node started.");
 
-    // create a timer to call the publisher
-    ros::Timer timer = nh.createTimer(ros::Duration(1.0 / publish_rate), boost::bind(&pointcloudPublishCallback, _1, &pub));
-
-    // start the spinner
-	ros::AsyncSpinner spinner(NUM_SPINNER_THREADS, &callback_queue);
-
-	spinner.start();
-
-    ros::waitForShutdown();
+    ros::Rate rate(publish_rate);
+    while(ros::ok()) {
+        pointcloudPublishCallback(&pub);
+        rate.sleep();
+    }
 
     // stop the spinner
 	spinner.stop();
