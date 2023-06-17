@@ -37,18 +37,45 @@ void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, co
     // ROS_INFO("New pointcloud from %s", topicName.c_str());
 
     // convert from the ROS to the PCL format
-    pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBL>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr in (new pcl::PointCloud<pcl::PointXYZ>);
     try {
-        pcl::fromROSMsg(*msg, *cloud);
+        pcl::fromROSMsg(*msg, *in);
     } catch (std::exception& e) {
         ROS_WARN("Error converting pointcloud from ROS to PCL: %s", e.what());
         return;
     }
 
-    if(cloud->empty()) {
-        cloud.reset();
+    if(in->empty()) {
+        in.reset();
         return;
     }
+
+    // convert the input pointcloud from PointXYZ to PointXYZRGBL
+    pcl::PointCloud<pcl::PointXYZRGBL>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGBL>);
+    cloud->points.resize(in->points.size());
+
+    // TODO: do this on CUDA
+    #pragma omp for
+    for (size_t i = 0; i < in->points.size(); ++i) {
+        cloud->points[i].x = in->points[i].x;
+        cloud->points[i].y = in->points[i].y;
+        cloud->points[i].z = in->points[i].z;
+
+        // Set RGB values to a constant color
+        cloud->points[i].r = 255;
+        cloud->points[i].g = 255;
+        cloud->points[i].b = 255;
+
+        // Set label to a constant value (e.g., 1)
+        cloud->points[i].label = 1;
+    }
+
+    cloud->width = in->width;
+    cloud->height = in->height;
+    cloud->is_dense = in->is_dense;
+
+    // destroy "in"
+    in.reset();
 
     PCLRegistrator& pclRegistrator = PCLRegistrator::getInstance(0,0,0);
 
@@ -77,7 +104,7 @@ void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, co
     }
 
     // feed the manager with the new pointcloud
-    pclRegistrator.manager->addCloud(cloud, topicName);
+    pclRegistrator.manager->addCloud(std::move(cloud), topicName);
 }
 
 // called when any new pointcloud is received
@@ -117,8 +144,5 @@ void PCLRegistrator::setPublisher(const ros::Publisher& point_cloud_pub) {
 }
 
 pcl::PointCloud<pcl::PointXYZRGBL> PCLRegistrator::getPointCloud() {
-    ROS_INFO("Requesting pointcloud");
-    pcl::PointCloud<pcl::PointXYZRGBL> c = this->manager->getMergedCloud();
-    ROS_INFO("Cloud size: %ld", c.size());
-    return c;
+    return this->manager->getMergedCloud();
 }
