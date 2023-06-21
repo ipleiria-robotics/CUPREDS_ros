@@ -24,12 +24,12 @@
 #define ROBOT_BASE "base_link"
 #define AGGREGATOR_PUBLISH_RATE 10 // Hz
 
-#define MAX_MEMORY 5000
+#define MAX_MEMORY 1000
 
-#define NUM_SPINNER_THREADS 16
+#define NUM_SPINNER_THREADS 4
 #define N_THREADS_IN_CALLBACK_POOL 32
 
-#define PCL_QUEUES_LEN 1000
+#define PCL_QUEUES_LEN 50
 
 void pointcloudPublishCallback(ros::Publisher* pub) {
 
