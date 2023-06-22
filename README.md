@@ -55,6 +55,8 @@ I haven't searched yet how to use X.org on Docker containers.
 - ```pointcloudn```: PointCloud topics, where $0 \leq n < n_{pointclouds}$. Example: ```pointcloud0```. Type: sensor_msgs/PointCloud2.
 #### Published topics
 - ```merged_pointcloud```: Merged PointCloud data. Type: sensor_msgs/PointCloud2.
+#### Required tf transforms
+- ```robot_base```->```pointcloudn```, where $0 \leq n < n_{pointclouds}$ and ```pointcloudn``` refers to the frame id used by that sensor.
 #### Services
 - ```snapshot```: Save locally a ```.pcd``` file of the current PointCloud generated.
     - Input: filename (string)
