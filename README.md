@@ -1,4 +1,4 @@
-# SafeForest Point Cloud Aggregator
+# CUPREDS – CUDA-Accelerated, Multi-threaded Point Cloud Registration from Heterogeneous Sensors with Efficient Data Structures
 
 This package is intended to provide functionality to aggregate pointclouds provenient from different sources. For instance, a deprojected depth camera and LiDAR sensors. Currently, the depth camera deprojection is done solely with CPU processing, but a version with CUDA computing is under development.
 
