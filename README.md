@@ -13,6 +13,7 @@ The hardware tested during the development of this package was the RealSense D43
 To replicate this exact scenario, it is recommended to use the official RealSense ROS wrapper as well as the Livox ROS wrapper. They provide the data already published through topics, and deal with little details we don't have to worry about.
 
 ## Dependencies
+- [CUPDREDS_core](https://github.com/ipleiria-robotics/CUPREDS_core)
 - PCL
 - Eigen 3
 - CUDA Toolkit (+ CUDA-enabled GPU)
