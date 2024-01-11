@@ -27,6 +27,7 @@ class PCLRegistrator
         size_t n_sources;
         double max_pointcloud_age;
         size_t max_memory;
+        size_t publish_rate;
         std::string robotFrame = "base_link";
         ros::Publisher point_cloud_pub;
         tf2_ros::Buffer tfBuffer;

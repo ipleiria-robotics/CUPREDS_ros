@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 
 	ros::Publisher pub = nh.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, PCL_QUEUES_LEN);
 
-	PCLRegistrator &registrator = PCLRegistrator::getInstance(n_pointclouds, max_pointcloud_age, max_memory);
+	PCLRegistrator &registrator = PCLRegistrator::getInstance(n_pointclouds, max_pointcloud_age, max_memory, publish_rate);
 
     // initialize the publisher on the registrator
     registrator.setPublisher(pub);
