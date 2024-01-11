@@ -6,8 +6,8 @@
 */
 #include "PCLRegistrator.h"
 
-PCLRegistrator& PCLRegistrator::getInstance(size_t n_sources, double max_age, size_t max_memory) {
-    static PCLRegistrator instance(n_sources, max_age, max_memory);  // Static instance of the singleton
+PCLRegistrator& PCLRegistrator::getInstance(size_t n_sources, double max_age, size_t max_memory, size_t publish_rate) {
+    static PCLRegistrator instance(n_sources, max_age, max_memory, publish_rate);  // Static instance of the singleton
     return instance;
 }
 
@@ -78,7 +78,7 @@ void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, co
     // destroy "in"
     in.reset();
 
-    PCLRegistrator& pclRegistrator = PCLRegistrator::getInstance(0,0,0);
+    PCLRegistrator& pclRegistrator = PCLRegistrator::getInstance(0,0,0,0);
 
     try {
 

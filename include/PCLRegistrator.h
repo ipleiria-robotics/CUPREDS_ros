@@ -33,13 +33,13 @@ class PCLRegistrator
         tf2_ros::Buffer tfBuffer;
         std::shared_ptr<tf2_ros::TransformListener> tfListener = nullptr;
 
-        PCLRegistrator(size_t n_sources, double max_age, size_t max_memory);
+        PCLRegistrator(size_t n_sources, double max_age, size_t max_memory, size_t publish_rate);
         ~PCLRegistrator();
 
         void initializeManager();
 
     public:
-        static PCLRegistrator &getInstance(size_t n_sources, double max_age, size_t max_memory);
+        static PCLRegistrator &getInstance(size_t n_sources, double max_age, size_t max_memory, size_t publish_rate);
 
         void pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr &msg, const std::string& topicName, boost::asio::thread_pool *pool);
         std::string getRobotFrame();

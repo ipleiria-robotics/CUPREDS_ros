@@ -12,7 +12,7 @@
 #include "pcl_conversions/pcl_conversions.h"
 #include "tf/transform_listener.h"
 #include "pcl/io/pcd_io.h"
-#include "pcl_aggregator/SnapshotService.h"
+#include "cupreds/SnapshotService.h"
 #include "PCLRegistrator.h"
 #include <memory>
 #include <functional>
@@ -33,7 +33,7 @@
 
 void pointcloudPublishCallback(ros::Publisher* pub) {
 
-    PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0);
+    PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0,0);
     pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator.getPointCloud();
 
     if(pointcloud.empty())
@@ -57,9 +57,9 @@ void pointcloudPublishCallback(ros::Publisher* pub) {
 	pub->publish(ros_cloud);
 }
 
-bool handleSnapshotServiceRequest(pcl_aggregator::SnapshotService::Request& req, pcl_aggregator::SnapshotService::Response& res) {
+bool handleSnapshotServiceRequest(cupreds::SnapshotService::Request& req, cupreds::SnapshotService::Response& res) {
 
-    PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0);
+    PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0,0);
 
     pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator.getPointCloud();
 

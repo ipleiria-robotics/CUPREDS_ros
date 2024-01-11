@@ -23,11 +23,11 @@ RUN apt install -y \
 
 # clone, build and install the core library
 WORKDIR /home/labrob
-RUN git clone -b dev https://github.com/carlostojal/pcl_aggregator_core.git
-WORKDIR /home/labrob/pcl_aggregator_core
+RUN git clone -b dev https://github.com/ipleiria-robotics/CUPREDS_core.git
+WORKDIR /home/labrob/CUPREDS_core
 # build the library
 RUN mkdir build
-WORKDIR /home/labrob/pcl_aggregator_core/build
+WORKDIR /home/labrob/CUPREDS_core/build
 RUN cmake ..
 RUN make -j8
 # install
@@ -38,8 +38,8 @@ RUN rosdep init
 RUN rosdep update
 
 # copy the ros package and build it
-RUN mkdir -p /catkin_ws/src/pcl_aggregator
-COPY . /catkin_ws/src/pcl_aggregator
+RUN mkdir -p /catkin_ws/src/CUPREDS_ros
+COPY . /catkin_ws/src/CUPREDS_ros
 WORKDIR /catkin_ws
 # install dependencies
 RUN rosdep install --from-paths /catkin_ws --ignore-src --rosdistro noetic -y
@@ -51,4 +51,4 @@ RUN /bin/bash -c "source /opt/ros/noetic/setup.bash && \
 # launch the aggregator
 CMD /bin/bash -c "source /opt/ros/noetic/setup.bash && \
     source /catkin_ws/devel/setup.bash && \
-    roslaunch pcl_aggregator aggregator.launch"
+    roslaunch cupreds aggregator.launch"
