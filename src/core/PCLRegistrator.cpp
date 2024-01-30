@@ -31,7 +31,7 @@ PCLRegistrator::~PCLRegistrator() {
 
 // initialize the sources manager with the number of sources and configured max pointcloud age
 void PCLRegistrator::initializeManager() {
-    this->manager = std::make_shared<pcl_aggregator::managers::PointCloudsManager>(n_sources, max_pointcloud_age, max_memory, publish_rate);
+    this->manager = std::make_shared<pcl_aggregator::managers::InterSensorManager>(n_sources, max_pointcloud_age, max_memory, publish_rate);
 }
 
 void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName) {

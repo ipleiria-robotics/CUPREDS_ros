@@ -13,7 +13,7 @@
 #include "pcl_conversions/pcl_conversions.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_eigen/tf2_eigen.h"
-#include <pcl_aggregator_core/managers/PointCloudsManager.h>
+#include <pcl_aggregator_core/managers/InterSensorManager.h>
 #include <memory>
 #include <thread>
 #include <boost/asio/thread_pool.hpp>
@@ -23,7 +23,7 @@ class PCLRegistrator
 {
 
     private:
-        std::shared_ptr<pcl_aggregator::managers::PointCloudsManager> manager = nullptr;
+        std::shared_ptr<pcl_aggregator::managers::InterSensorManager> manager = nullptr;
         size_t n_sources;
         double max_pointcloud_age;
         size_t max_memory;
