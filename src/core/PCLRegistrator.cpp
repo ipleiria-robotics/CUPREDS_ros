@@ -26,12 +26,12 @@ PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age, size
 }
 
 PCLRegistrator::~PCLRegistrator() {
-    this->manager.reset();
+    this->manager.destruct();
 }
 
 // initialize the sources manager with the number of sources and configured max pointcloud age
 void PCLRegistrator::initializeManager() {
-    this->manager = std::make_shared<pcl_aggregator::managers::InterSensorManager>(n_sources, max_pointcloud_age, max_memory, publish_rate);
+    this->manager = pcl_aggregator::managers::InterSensorManager::get(n_sources, max_pointcloud_age, max_memory, publish_rate);
 }
 
 void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName) {
@@ -97,7 +97,7 @@ void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, co
         // invert the affine transformation
         transformEigen.matrix().inverse();
 
-        pclRegistrator.manager->setTransform(transformEigen, topicName);
+        pclRegistrator.manager.setTransform(transformEigen, topicName);
 
     } catch (tf2::TransformException &ex) {
         ROS_WARN("Error looking up the transform to '%s': %s", msg->header.frame_id.c_str(), ex.what());
@@ -105,7 +105,7 @@ void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, co
     }
 
     // feed the manager with the new pointcloud
-    pclRegistrator.manager->addCloud(std::move(cloud), topicName);
+    pclRegistrator.manager.addCloud(std::move(cloud), topicName);
 }
 
 // called when any new pointcloud is received
@@ -145,5 +145,5 @@ void PCLRegistrator::setPublisher(const ros::Publisher& point_cloud_pub) {
 }
 
 pcl::PointCloud<pcl::PointXYZRGBL> PCLRegistrator::getPointCloud() {
-    return this->manager->getMergedCloud();
+    return this->manager.getMergedCloud();
 }

@@ -23,7 +23,7 @@ class PCLRegistrator
 {
 
     private:
-        std::shared_ptr<pcl_aggregator::managers::InterSensorManager> manager = nullptr;
+        pcl_aggregator::managers::InterSensorManager manager;
         size_t n_sources;
         double max_pointcloud_age;
         size_t max_memory;
