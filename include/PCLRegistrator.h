@@ -23,7 +23,7 @@ class PCLRegistrator
 {
 
     private:
-        pcl_aggregator::managers::InterSensorManager manager;
+        pcl_aggregator::managers::InterSensorManager& manager;
         size_t n_sources;
         double max_pointcloud_age;
         size_t max_memory;
@@ -35,8 +35,6 @@ class PCLRegistrator
 
         PCLRegistrator(size_t n_sources, double max_age, size_t max_memory, size_t publish_rate);
         ~PCLRegistrator();
-
-        void initializeManager();
 
     public:
         static PCLRegistrator &getInstance(size_t n_sources, double max_age, size_t max_memory, size_t publish_rate);

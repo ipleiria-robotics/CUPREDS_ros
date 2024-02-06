@@ -5,7 +5,7 @@
     <param name="max_pointcloud_age" value="1" type="double" />
     <param name="publish_rate" value="10" type="int" />
 
-    <node name="pcl_aggregator" pkg="pcl_aggregator" type="pcl_aggregator_node" output="screen">
+    <node name="cupreds" pkg="cupreds" type="pcl_aggregator_node" output="screen">
 
         <remap to="/velodyne_points" from="pointcloud0" />
         <remap to="/os_cloud_node/points" from="pointcloud1" />

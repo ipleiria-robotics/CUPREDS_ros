@@ -11,7 +11,8 @@ PCLRegistrator& PCLRegistrator::getInstance(size_t n_sources, double max_age, si
     return instance;
 }
 
-PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age, size_t max_memory, size_t publish_rate) {
+PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age, size_t max_memory, size_t publish_rate) : 
+    manager(pcl_aggregator::managers::InterSensorManager::getInstance(n_sources, max_pointcloud_age)) {
     // get the number of sources and maximum pointcloud age
     this->n_sources = n_sources;
     this->max_pointcloud_age = max_pointcloud_age;
@@ -20,18 +21,10 @@ PCLRegistrator::PCLRegistrator(size_t n_sources, double max_pointcloud_age, size
 
     // initialize the tf listener and buffer
     this->tfListener = std::make_shared<tf2_ros::TransformListener>(this->tfBuffer, true);
-
-    // use this to initialize the sources manager
-    this->initializeManager();
 }
 
 PCLRegistrator::~PCLRegistrator() {
     this->manager.destruct();
-}
-
-// initialize the sources manager with the number of sources and configured max pointcloud age
-void PCLRegistrator::initializeManager() {
-    this->manager = pcl_aggregator::managers::InterSensorManager::get(n_sources, max_pointcloud_age, max_memory, publish_rate);
 }
 
 void pointcloudCallbackRoutine(const sensor_msgs::PointCloud2::ConstPtr& msg, const std::string& topicName) {

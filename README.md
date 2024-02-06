@@ -46,12 +46,11 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 - From now on, it's up to you :)
 
 ### Docker
-I haven't searched yet how to use X.org on Docker containers.
 - Install Docker. It is recommended to follow the official documentation.
 - Setup the NVIDIA Container Toolkit for Docker ([guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#install-guide)).
-- Make any changes you want to the configuration on the corresponding launch file `aggregator.launch`.
-- From this directory, run the command ```docker build -t pcl_aggregator .```. This may take a while, just wait. It will install all the dependencies and build the core library, install it, and build the package.
-- You can start the container with the running nodes with `docker run --rm --runtime=nvidia --gpus all --network=host -it pcl_aggregator`.
+- Clone the core library repository [CUPREDS_core](https://github.com/ipleiria-robotics/CUPREDS_core) to the same level as this directory.
+- From the directory containing `CUPREDS_core` and `CUPREDS_ros`, run `docker build -t cupreds:latest -f CUPREDS_ros/Dockerfile .`. This may take a while, just wait. It will install all the dependencies and build the core library, install it, and build the package.
+- You can start the container with the running nodes with `docker run --rm --runtime=nvidia --gpus all --network=host -it cupreds`.
 
 ## Nodes
 ### pcl_aggregator_node

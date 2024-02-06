@@ -3,6 +3,7 @@ devel/
 cmake-build-debug/
 .vscode/
 .idea/
+bags/
 singularity/*.sif
 singularity/overlay_dir
 singularity/build-temp*

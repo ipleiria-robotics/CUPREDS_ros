@@ -185,7 +185,7 @@ add_executable(
 #   ${catkin_LIBRARIES}
 # )
 # target_link_libraries(cuda_pointclouds ${CUDA_LIBRARIES})
-target_link_libraries(pcl_aggregator_node ${catkin_LIBRARIES} ${Boost_LIBRARIES} pcl_aggregator_core)
+target_link_libraries(pcl_aggregator_node pcl_aggregator_core ${catkin_LIBRARIES})
 # target_link_libraries(rgbd_deprojector_node ${catkin_LIBRARIES} ${pcl_aggregator_core_LIBRARIES})
 
 #############
