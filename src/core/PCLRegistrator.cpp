@@ -140,3 +140,19 @@ void PCLRegistrator::setPublisher(const ros::Publisher& point_cloud_pub) {
 pcl::PointCloud<pcl::PointXYZRGBL> PCLRegistrator::getPointCloud() {
     return this->manager.getMergedCloud();
 }
+
+double PCLRegistrator::getInterSensorLatency() {
+    return this->manager.getAverageRegistrationTime();
+}
+
+double PCLRegistrator::getInterSensorStdDev() {
+    return this->manager.getStdDevRegistrationTime();
+}
+
+double PCLRegistrator::getIntraSensorLatency() {
+    return this->manager.getIntraSensorAverageLatency();
+}
+
+double PCLRegistrator::getIntraSensorStdDev() {
+    return this->manager.getIntraSensorStdDev();
+}

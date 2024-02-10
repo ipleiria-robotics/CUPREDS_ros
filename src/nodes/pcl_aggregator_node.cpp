@@ -13,6 +13,7 @@
 #include "tf/transform_listener.h"
 #include "pcl/io/pcd_io.h"
 #include "cupreds/SnapshotService.h"
+#include "cupreds/StatisticsService.h"
 #include "PCLRegistrator.h"
 #include <memory>
 #include <functional>
@@ -36,11 +37,12 @@ void pointcloudPublishCallback(ros::Publisher* pub) {
     PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0,0);
     pcl::PointCloud<pcl::PointXYZRGBL> pointcloud = registrator.getPointCloud();
 
+    /*
     if(pointcloud.empty())
         return;
 
     if(pointcloud.points.size() != pointcloud.width * pointcloud.height)
-        return;
+        return;*/
 
     sensor_msgs::PointCloud2 ros_cloud;
 
@@ -82,6 +84,19 @@ bool handleSnapshotServiceRequest(cupreds::SnapshotService::Request& req, cupred
     }
 
     res.output_filename = filename;
+
+    return true;
+}
+
+bool handleStatisticsServiceRequest(cupreds::StatisticsService::Request& req, cupreds::StatisticsService::Response& res) {
+    
+    PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0,0);
+
+    res.intra_sensor_latency = registrator.getIntraSensorLatency();
+    res.intra_sensor_stddev = registrator.getIntraSensorStdDev();
+
+    res.inter_sensor_latency = registrator.getInterSensorLatency();
+    res.inter_sensor_stddev = registrator.getInterSensorStdDev();
 
     return true;
 }
@@ -141,6 +156,9 @@ int main(int argc, char **argv) {
 
     // initialize the snapshot service
     ros::ServiceServer snapshot_service = nh.advertiseService("snapshot", handleSnapshotServiceRequest);
+
+    // initialize the statistics service
+    ros::ServiceServer statistics_service = nh.advertiseService("statistics", handleStatisticsServiceRequest);
 
     // start the spinner
     ros::AsyncSpinner spinner(NUM_SPINNER_THREADS, &callback_queue);

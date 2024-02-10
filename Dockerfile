@@ -1,6 +1,7 @@
 FROM carlostojal/cuda-ros:noetic-cuda12.1.1-ubuntu20.04
 
-ARG LIBRARY_SOURCE_PATH=../CUPREDS_core
+ARG LIBRARY_SOURCE_PATH=./CUPREDS_core
+ARG DEMO_BAG_PATH=./bags/demo.bag
 
 # environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -33,6 +34,15 @@ RUN apt install -y \
     ros-noetic-pcl-conversions \
     ros-noetic-geometry-msgs \
     ros-noetic-foxglove-bridge
+
+# copy the bag
+COPY ${DEMO_BAG_PATH} /catkin_ws/src/CUPREDS_ros/bags/demo.bag
+
+# re-index the bag in case it might be broken
+RUN /bin/bash -c "source /opt/ros/noetic/setup.bash && \
+    rosbag reindex /catkin_ws/src/CUPREDS_ROS/bags/demo.bag"
+
+RUN apt install valgrind -y
 
 # copy the library from host to container
 WORKDIR /home/labrob/CUPREDS_core

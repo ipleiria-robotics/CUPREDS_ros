@@ -1,4 +1,6 @@
 build/
+bags/
+bags/*
 cmake-build-debug/
 singularity/
 singularity/build*

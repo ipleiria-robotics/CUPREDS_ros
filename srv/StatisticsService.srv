@@ -1,0 +1,6 @@
+---
+float64 intra_sensor_latency
+float64 intra_sensor_stddev
+
+float64 inter_sensor_latency
+float64 inter_sensor_stddev

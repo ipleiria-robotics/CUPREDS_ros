@@ -45,6 +45,11 @@ class PCLRegistrator
         void setPublisher(const ros::Publisher& point_cloud_pub);
         pcl::PointCloud<pcl::PointXYZRGBL> getPointCloud();
 
+        double getInterSensorLatency();
+        double getInterSensorStdDev();
+        double getIntraSensorLatency();
+        double getIntraSensorStdDev();
+
         // Disable copy construction and assignment operator
         PCLRegistrator(const PCLRegistrator&) = delete;
         PCLRegistrator& operator=(const PCLRegistrator&) = delete;

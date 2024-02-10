@@ -1,8 +1,8 @@
 <launch>
 
-    <param name="n_pointclouds" value="3" type="int" />
+    <param name="n_pointclouds" value="1" type="int" />
     <param name="robot_base" value="base_link" type="str" />
-    <param name="max_pointcloud_age" value="1" type="double" />
+    <param name="max_pointcloud_age" value="5" type="double" />
     <param name="publish_rate" value="10" type="int" />
 
     <node name="cupreds" pkg="cupreds" type="pcl_aggregator_node" output="screen">
@@ -20,5 +20,5 @@
     <node name="foxglove_bridge" pkg="foxglove_bridge" type="foxglove_bridge" output="screen" />
 
     <!-- play the bag -->
-    <node name="rosbag" pkg="rosbag" type="play" args="--pause --clock /catkin_ws/src/CUPREDS_ros/bags/forest.bag" output="screen" />
+    <node name="rosbag" pkg="rosbag" type="play" args="--pause --clock /catkin_ws/src/CUPREDS_ros/bags/demo.bag" output="screen" />
 </launch>
