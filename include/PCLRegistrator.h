@@ -44,6 +44,7 @@ class PCLRegistrator
         void setRobotFrame(const std::string &robotFrame);
         void setPublisher(const ros::Publisher& point_cloud_pub);
         pcl::PointCloud<pcl::PointXYZRGBL> getPointCloud();
+        Eigen::Matrix4f getOdom();
 
         double getInterSensorLatency();
         double getInterSensorStdDev();

@@ -141,6 +141,10 @@ pcl::PointCloud<pcl::PointXYZRGBL> PCLRegistrator::getPointCloud() {
     return this->manager.getMergedCloud();
 }
 
+Eigen::Matrix4f PCLRegistrator::getOdom() {
+    return this->manager.getOdometry();
+}
+
 double PCLRegistrator::getInterSensorLatency() {
     return this->manager.getAverageRegistrationTime();
 }

@@ -11,6 +11,8 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "tf/transform_listener.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "geometry_msgs/TransformStamped.h"
 #include "pcl/io/pcd_io.h"
 #include "cupreds/SnapshotService.h"
 #include "cupreds/StatisticsService.h"
@@ -57,6 +59,27 @@ void pointcloudPublishCallback(ros::Publisher* pub) {
 
 	// publish the PointCloud
 	pub->publish(ros_cloud);
+}
+
+void odomPublishCallback(tf2_ros::TransformBroadcaster& br, std::string& robot_base) {
+
+    PCLRegistrator& registrator = PCLRegistrator::getInstance(0,0,0,0);
+
+    // get the odometry value
+    Eigen::Matrix4f odom = registrator.getOdom();
+    
+    // convert the Eigen::Matrix4f to a  Eigen::Affine3d
+    Eigen::Affine3d odom_affine = Eigen::Affine3d(odom.cast<double>());
+
+    // create the transform message
+    geometry_msgs::TransformStamped tf_msg;
+    tf_msg = tf2::eigenToTransform(odom_affine);
+    tf_msg.header.stamp = ros::Time::now();
+    // this defines the transform between the "odom" frame and the robot base link
+    tf_msg.header.frame_id = "odom";
+    tf_msg.child_frame_id = robot_base;
+
+    br.sendTransform(tf_msg);
 }
 
 bool handleSnapshotServiceRequest(cupreds::SnapshotService::Request& req, cupreds::SnapshotService::Response& res) {
@@ -125,7 +148,11 @@ int main(int argc, char **argv) {
     // allocate the subscribers
     std::vector<ros::Subscriber> pcl_subscribers;
 
+    // declare the point cloud publisher
 	ros::Publisher pub = nh.advertise<sensor_msgs::PointCloud2>(POINTCLOUD_TOPIC, PCL_QUEUES_LEN);
+
+    // declare the odometry tf publisher
+    tf2_ros::TransformBroadcaster br;
 
 	PCLRegistrator &registrator = PCLRegistrator::getInstance(n_pointclouds, max_pointcloud_age, max_memory, publish_rate);
 
@@ -169,6 +196,7 @@ int main(int argc, char **argv) {
     ros::Rate rate(publish_rate);
     while(ros::ok()) {
         pointcloudPublishCallback(&pub);
+        odomPublishCallback(br, robot_base);
         rate.sleep();
     }
 
