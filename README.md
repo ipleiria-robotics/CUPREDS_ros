@@ -22,7 +22,7 @@ The hardware tested during the development of this package was the RealSense D43
 To replicate this exact scenario, it is recommended to use the official RealSense ROS wrapper as well as the Livox ROS wrapper. They provide the data already published through topics, and deal with little details we don't have to worry about.
 
 ## Dependencies
-- [CUPDREDS_core](https://github.com/ipleiria-robotics/CUPREDS_core)
+- CUPDREDS\_core]
 - PCL
 - Eigen 3
 - CUDA Toolkit (+ CUDA-enabled GPU)
@@ -48,12 +48,12 @@ To replicate this exact scenario, it is recommended to use the official RealSens
 ### Docker
 - Install Docker. It is recommended to follow the official documentation.
 - Setup the NVIDIA Container Toolkit for Docker ([guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#install-guide)).
-- Clone the core library repository [CUPREDS_core](https://github.com/ipleiria-robotics/CUPREDS_core) to the same level as this directory.
-- From the directory containing `CUPREDS_core` and `CUPREDS_ros`, run `docker build -t cupreds:latest -f CUPREDS_ros/Dockerfile .`. This may take a while, just wait. It will install all the dependencies and build the core library, install it, and build the package.
+- Clone the core library repository CUPREDS_core to the same level as this directory.
+- From the directory containing `CUPREDS\_core` and `CUPREDS\_ros`, run `docker build -t cupreds:latest -f CUPREDS\_ros/Dockerfile .`. This may take a while, just wait. It will install all the dependencies and build the core library, install it, and build the package.
 - You can start the container with the running nodes with `docker run --rm --runtime=nvidia --gpus all --network=host -it cupreds`.
 
 ## Nodes
-### pcl_aggregator_node
+### pcl\_aggregator\_node
 #### Parameters
 - ```n_pointclouds```: Number of PointClouds to be subscribed. Default: 1.
 - ```max_pointcloud_age```: The PointClouds considered to register are the ones newer than the age specified on this parameter in seconds. Default: 2.
@@ -71,7 +71,7 @@ To replicate this exact scenario, it is recommended to use the official RealSens
     - Input: filename (string)
     - Output: filename (string)
 
-### rgbd_deprojector_node
+### rgbd\_deprojector\_node
 #### Subscribed topics
 - ```/camera/aligned_depth_to_color/camera_info```: Depth camera information data. Type: sensor_msgs/CameraInfo.
 - ```/camera/aligned_depth_to_color/image_raw```: Depth frame aligned to the RGB frame. Type: sensor_msgs/Image.
